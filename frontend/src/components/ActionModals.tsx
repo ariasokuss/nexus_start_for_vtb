@@ -31,18 +31,28 @@ function AmountInput({ value, onChange, chips }: { value: string; onChange: (v: 
   )
 }
 
-function Choice({ active, onClick, icon, title, sub }: { active: boolean; onClick: () => void; icon: string; title: string; sub?: string }) {
+function Choice({ active, onClick, icon, title, sub, vertical = false, tone = 'brand' }: {
+  active: boolean
+  onClick: () => void
+  icon: string
+  title: string
+  sub?: string
+  vertical?: boolean
+  tone?: 'brand' | 'danger'
+}) {
+  const on = tone === 'danger' ? 'border-risk-high bg-risk-high/5' : 'border-brand bg-brand-soft'
+  const iconOn = tone === 'danger' ? 'bg-risk-high text-white' : 'bg-brand text-white'
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition ${active ? 'border-brand bg-brand-soft' : 'border-line hover:border-brand/40'}`}
+      className={`flex gap-3 rounded-2xl border-2 p-3.5 text-left transition ${vertical ? 'flex-col items-start' : 'items-center'} ${active ? on : 'border-line hover:border-brand/40'}`}
     >
-      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${active ? 'bg-brand text-white' : 'bg-page text-ink'}`}>
+      <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${active ? iconOn : 'bg-page text-ink'}`}>
         <Icon name={icon} size={19} />
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-semibold">{title}</span>
-        {sub && <span className="block truncate text-xs text-muted">{sub}</span>}
+        <span className={`block font-semibold leading-tight ${vertical ? '' : 'truncate'}`}>{title}</span>
+        {sub && <span className={`mt-0.5 block text-xs leading-snug text-muted ${vertical ? '' : 'truncate'}`}>{sub}</span>}
       </span>
     </button>
   )
@@ -71,9 +81,9 @@ export function TopUpModal({ persona, onClose, onDone }: {
     <Modal title="Пополнить счёт" onClose={onClose}>
       <div className="text-sm font-semibold text-muted">От кого</div>
       <div className="mt-2 grid grid-cols-3 gap-2">
-        <Choice active={sender === 'Мама'} onClick={() => setSender('Мама')} icon="user" title="Мама" />
-        <Choice active={sender === 'Папа'} onClick={() => setSender('Папа')} icon="user" title="Папа" />
-        <Choice active={sender === 'Неизвестный'} onClick={() => setSender('Неизвестный')} icon="alert" title="Неизвестный" />
+        <Choice vertical active={sender === 'Мама'} onClick={() => setSender('Мама')} icon="user" title="Мама" sub="Переводит часто" />
+        <Choice vertical active={sender === 'Папа'} onClick={() => setSender('Папа')} icon="user" title="Папа" sub="Переводит часто" />
+        <Choice vertical tone="danger" active={sender === 'Неизвестный'} onClick={() => setSender('Неизвестный')} icon="alert" title="Незнакомец" sub="Раньше не переводил" />
       </div>
       {sender === 'Неизвестный' && (
         <p className="animate-fade mt-3 rounded-2xl bg-page p-3 text-sm text-muted">
