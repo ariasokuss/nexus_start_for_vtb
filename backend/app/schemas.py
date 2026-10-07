@@ -140,7 +140,7 @@ class ShieldRequest(BaseModel):
 class ShieldResponse(BaseModel):
     risk: RiskLevel
     score: float
-    scheme: Literal["drop_recruitment", "phishing", "relative_in_trouble", "prize", "safe"]
+    scheme: Literal["drop_recruitment", "phishing", "relative_in_trouble", "prize", "other_fraud", "safe"]
     red_flags: list[str]
     explanation: str
     consequences: list[str]

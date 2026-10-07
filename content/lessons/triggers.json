@@ -1,7 +1,11 @@
 [
-  {"event": "p2p_stranger", "lesson_id": "dont_share_card", "condition": "перевод от незнакомого отправителя"},
-  {"event": "salary", "lesson_id": "ndfl", "condition": "первая зарплата"},
-  {"event": "subscription", "lesson_id": "subscriptions", "condition": "3-я активная подписка"},
-  {"event": "overspend", "lesson_id": "budget_503020", "condition": "траты на категорию > нормы на 30%"},
+  {"event": "p2p_stranger", "lesson_id": "dont_share_card", "condition": "перевод от незнакомого отправителя",
+   "when": [{"field": "amount", "op": ">=", "value": 1000}]},
+  {"event": "salary", "lesson_id": "ndfl", "condition": "первая зарплата",
+   "when": [{"field": "is_first", "op": "==", "value": true}]},
+  {"event": "subscription", "lesson_id": "subscriptions", "condition": "3-я активная подписка",
+   "when": [{"field": "active_subscriptions", "op": ">=", "value": 3}]},
+  {"event": "overspend", "lesson_id": "budget_503020", "condition": "траты на категорию > нормы на 30%",
+   "when": [{"field": "overspend_ratio", "op": ">=", "value": 1.3}]},
   {"event": "bank_call", "lesson_id": "spot_fraud", "condition": "звонок или сообщение «от банка»"}
 ]

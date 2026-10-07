@@ -1,10 +1,14 @@
 """Скоринг перевода в момент попытки.
 
-Сейчас — прозрачные правила (бейзлайн). TODO(Даша): заменить/дополнить CatBoost-моделью
-из ml/ (признаки — ml/src/features.py), причины — из SHAP через словарь фраз.
+Признаки — app/ml/features.py (те же, на которых учится модель в ml/).
+Если обученная CatBoost-модель есть (app/ml/models/risk.cbm) — score и причины из неё (причины через SHAP),
+иначе — прозрачные правила с баллами (rule_score).
 """
 from datetime import datetime
 
+from app import content
+from app.ml import risk_model
+from app.ml.features import Transfer, build_features, rule_score
 from app.schemas import LiveRisk, Risk, Transaction
 from app.services.bank import Account
 
@@ -27,37 +31,26 @@ def _recent_stranger_incoming(txs: list[Transaction], now: datetime, minutes: in
     return None
 
 
+def _card_age_days(account: Account, now: datetime) -> float:
+    raw = content.personas().get(account.persona.id, {})
+    if "card_age_days" in raw:
+        return raw["card_age_days"]
+    first = min((t.ts for t in account.transactions), default=now)
+    return (now - first).total_seconds() / 86400
+
+
+def transfer_features(account: Account, to: str, amount: float, now: datetime | None = None) -> dict:
+    now = now or datetime.now()
+    history = sorted((t for t in account.transactions if t.ts <= now), key=lambda t: t.ts)
+    return build_features(history, Transfer(ts=now, amount=amount, to=to), account.persona.age, _card_age_days(account, now))
+
+
 def score_transfer(account: Account, to: str, amount: float) -> Risk:
-    now = datetime.now()
-    score, reasons = 0.0, []
-
-    incoming = _recent_stranger_incoming(account.transactions, now)
-    if incoming:
-        mins = max(1, int((now - incoming.ts).total_seconds() // 60))
-        score += 0.35
-        reasons.append(f"{_rub(incoming.amount)} пришли от незнакомца {mins} мин назад")
-        share = amount / incoming.amount
-        if share >= 0.7:
-            score += 0.3
-            reasons.append(f"Ты переводишь {min(share, 1):.0%} этой суммы дальше")
-
-    if to not in account.known_counterparties():
-        score += 0.15
-        reasons.append("Новый получатель, раньше переводов ему не было")
-
-    if account.persona.age < 18:
-        score += 0.1
-        reasons.append(f"Клиенту {account.persona.age} лет")
-
-    day_senders = {
-        t.counterparty for t in account.transactions
-        if t.direction == "in" and t.is_new_counterparty and (now - t.ts).days < 1
-    }
-    if len(day_senders) >= 3:
-        score += 0.2
-        reasons.append(f"{len(day_senders)} переводов от разных незнакомцев за сутки")
-
-    score = round(min(score, 1.0), 2)
+    features = transfer_features(account, to, amount)
+    if risk_model.available():
+        score, reasons = risk_model.predict(features)
+    else:
+        score, reasons = rule_score(features)
     return Risk(score=score, level=_level(score), reasons=reasons)
 
 

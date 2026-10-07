@@ -1,13 +1,14 @@
 """Щит: проверка подозрительного сообщения.
 
 Пайплайн: (скриншот → OCR) → классификатор ставит вердикт → LLM объясняет → фолбэк на шаблон.
-Сейчас классификатор — ключевые слова (бейзлайн).
-TODO(Даша): заменить classify() на модель из ml/ (TF-IDF/rubert-tiny2 + логрег).
+Вердикт — классификатор из ml/ (TF-IDF + логрег, app/ml/shield_model.py); если файла модели нет —
+ключевые слова (бейзлайн). Регулярки ниже в любом случае дают человеческие red_flags и подтип схемы.
 TODO(тимлид): OCR через EasyOCR для image_base64.
 """
 import re
 
 from app import content
+from app.ml import shield_model
 from app.schemas import ShieldResponse
 from app.services import llm
 
@@ -34,6 +35,21 @@ SYSTEM_PROMPT = (
 def classify(text: str) -> tuple[str, float, list[str]]:
     low = text.lower()
     flags = [msg for pattern, msg in DROP_PATTERNS.items() if re.search(pattern, low)]
+    if text.strip() and shield_model.available():
+        proba = shield_model.predict_proba(text)
+        label = max(proba, key=proba.get)
+        if label == "drop_recruitment":
+            return label, proba[label], flags or ["Похоже на типичные сообщения вербовщиков"]
+        if label == "other_fraud":
+            for pattern, (scheme, msg) in OTHER_FRAUD_PATTERNS.items():
+                if re.search(pattern, low):
+                    return scheme, proba[label], [msg]
+            return "other_fraud", proba[label], ["Похоже на типичную мошенническую схему"]
+        return "safe", 1 - proba["safe"], flags
+    return _classify_keywords(low, flags)
+
+
+def _classify_keywords(low: str, flags: list[str]) -> tuple[str, float, list[str]]:
     if len(flags) >= 2:
         return "drop_recruitment", min(0.5 + 0.15 * len(flags), 0.99), flags
     for pattern, (scheme, msg) in OTHER_FRAUD_PATTERNS.items():
