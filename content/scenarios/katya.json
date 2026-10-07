@@ -1,0 +1,32 @@
+{
+  "persona_id": "katya",
+  "title": "Первая зарплата и контекстные уроки",
+  "steps": [
+    {
+      "id": "salary",
+      "title": "Первая зарплата",
+      "hint": "Пришла зарплата — появляется урок про НДФЛ",
+      "chat": [],
+      "bank_events": [
+        {"type": "incoming", "amount": 17400, "counterparty": "ООО «Кофейня»", "is_new_counterparty": false}
+      ],
+      "expect": {"action": "event", "type": "salary"}
+    },
+    {
+      "id": "subscription",
+      "title": "Третья подписка",
+      "hint": "Катя оформляет третью подписку — урок о том, сколько они стоят за год",
+      "chat": [],
+      "bank_events": [],
+      "expect": {"action": "event", "type": "subscription"}
+    },
+    {
+      "id": "overspend",
+      "title": "Перерасход",
+      "hint": "Траты на доставку выше нормы — урок про бюджет 50/30/20",
+      "chat": [],
+      "bank_events": [],
+      "expect": {"action": "event", "type": "overspend"}
+    }
+  ]
+}

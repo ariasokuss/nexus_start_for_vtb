@@ -1,0 +1,39 @@
+[
+  {
+    "id": "artem",
+    "name": "Артём",
+    "age": 16,
+    "balance": 1200,
+    "description": "Школьник, 10 класс. Получил «подработку» в мессенджере.",
+    "history": [
+      {"days_ago": 6, "amount": 1500, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
+      {"days_ago": 5, "amount": 350, "direction": "out", "counterparty": "Кофейня у школы", "channel": "card"},
+      {"days_ago": 3, "amount": 200, "direction": "out", "counterparty": "Саша (друг)", "channel": "sbp"},
+      {"days_ago": 1, "amount": 249, "direction": "out", "counterparty": "Подписка на музыку", "channel": "card"}
+    ]
+  },
+  {
+    "id": "dima",
+    "name": "Дима",
+    "age": 17,
+    "balance": 2600,
+    "description": "Студент колледжа. Уже один раз переслал деньги «работодателю», теперь ему угрожают.",
+    "history": [
+      {"days_ago": 10, "amount": 3000, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
+      {"days_ago": 4, "amount": 400, "direction": "out", "counterparty": "Столовая", "channel": "card"}
+    ]
+  },
+  {
+    "id": "katya",
+    "name": "Катя",
+    "age": 19,
+    "balance": 4800,
+    "description": "Студентка 2 курса, бариста по выходным. Первая зарплата.",
+    "history": [
+      {"days_ago": 20, "amount": 5000, "direction": "in", "counterparty": "Стипендия", "channel": "salary"},
+      {"days_ago": 12, "amount": 299, "direction": "out", "counterparty": "Онлайн-кинотеатр", "channel": "card"},
+      {"days_ago": 8, "amount": 199, "direction": "out", "counterparty": "Музыкальный сервис", "channel": "card"},
+      {"days_ago": 2, "amount": 1850, "direction": "out", "counterparty": "Доставка еды", "channel": "card"}
+    ]
+  }
+]

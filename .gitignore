@@ -1,0 +1,30 @@
+# Материалы организаторов и заявка — не публикуем
+tz.txt
+Положение*.pdf
+
+# Секреты
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+dist/
+
+# ML: большие артефакты не коммитим (кроме .gitkeep)
+ml/data/*
+!ml/data/.gitkeep
+ml/models/*
+!ml/models/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

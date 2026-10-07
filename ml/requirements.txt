@@ -1,0 +1,9 @@
+numpy
+pandas
+scikit-learn
+catboost
+shap
+sentence-transformers   # rubert-tiny2 для эмбеддингов сообщений
+easyocr                 # OCR скриншотов
+matplotlib
+jupyter

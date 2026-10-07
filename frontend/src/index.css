@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Нейтральный «банковский» стиль. Логотип и фирменные цвета ВТБ — только после письменного разрешения организаторов. */
+@theme {
+  --color-brand: #1f4bd8;
+  --color-brand-dark: #0b2a8a;
+  --color-risk-high: #e5484d;
+  --color-risk-medium: #f5a524;
+  --color-risk-low: #30a46c;
+}
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+}
