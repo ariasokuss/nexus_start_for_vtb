@@ -54,3 +54,37 @@ def test_every_trigger_has_lesson():
     for event in ["p2p_stranger", "salary", "subscription", "overspend", "bank_call"]:
         lesson = client.post("/api/events", json={"persona_id": "katya", "type": event}).json()["lesson"]
         assert lesson and lesson["cards"]
+
+
+def test_topup_from_parent_is_ok_and_stranger_is_flagged():
+    client.post("/api/personas/artem/reset")
+    mom = client.post("/api/payments/topup", json={"persona_id": "artem", "sender": "Мама", "amount": 1500}).json()
+    assert mom["status"] == "ok"
+    stranger = client.post("/api/payments/topup", json={"persona_id": "artem", "sender": "Неизвестный", "amount": 30000}).json()
+    assert stranger["status"] == "flagged"
+    assert stranger["transaction"]["flagged"]
+    assert any("раз больше" in r for r in stranger["risk"]["reasons"])
+
+
+def test_forwarding_flagged_money_is_intercepted_and_shown_live():
+    client.post("/api/personas/artem/reset")
+    client.post("/api/payments/topup", json={"persona_id": "artem", "sender": "Неизвестный", "amount": 30000})
+    r = client.post("/api/payments/transfer", json={"persona_id": "artem", "to": "+79990001234", "amount": 27000}).json()
+    assert r["status"] == "intercepted"
+    live = client.get("/api/risk/artem/live").json()
+    assert live["level"] == "high"
+    assert live["profile"]["known_senders"] == ["Мама", "Папа"]
+
+
+def test_confirmed_transfer_passes_and_known_recipient_is_low():
+    client.post("/api/personas/artem/reset")
+    r = client.post("/api/payments/transfer", json={"persona_id": "artem", "to": "Саша (друг)", "amount": 300}).json()
+    assert r["status"] == "ok" and r["risk"]["level"] == "low"
+
+
+def test_pay_and_assistant():
+    client.post("/api/personas/katya/reset")
+    r = client.post("/api/payments/pay", json={"persona_id": "katya", "merchant": "Магазин одежды", "category": "clothes", "amount": 1990}).json()
+    assert r["status"] == "ok"
+    a = client.post("/api/assistant/chat", json={"persona_id": "katya", "message": "что такое дроп?"}).json()
+    assert "Дроп" in a["reply"] and a["suggestions"]

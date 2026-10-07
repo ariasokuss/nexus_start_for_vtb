@@ -1,0 +1,332 @@
+import { useEffect, useState } from 'react'
+
+import { api } from '../api/client'
+import type { InterceptAction, Lesson, Persona, ShieldResult, SosBranch, Transaction, TransferResponse } from '../api/types'
+import { RISK_COLOR, RISK_LABEL, rub } from '../lib'
+import Icon from './Icon'
+import Modal from './Modal'
+
+// ---------- Перехват перевода ----------
+export function InterceptModal({ result, to, amount, onAction, onClose }: {
+  result: TransferResponse
+  to: string
+  amount: number
+  onAction: (a: InterceptAction) => void
+  onClose: () => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  const it = result.intercept!
+
+  if (confirming) {
+    return (
+      <Modal title="Вы уверены?" onClose={onClose} onBack={() => setConfirming(false)}>
+        <p className="text-[15px] leading-relaxed text-ink/80">
+          Если это действительно ваши деньги — перевод можно провести. Но если вас попросили «принять и переслать»,
+          отвечать за операцию будете вы, а не тот, кто попросил.
+        </p>
+        <ul className="mt-4 space-y-2 text-[15px]">
+          {['Я знаю отправителя лично', 'Меня никто не торопит и не обещает процент', 'Получатель — не «куратор» из чата'].map((x) => (
+            <li key={x} className="flex gap-2.5 rounded-2xl bg-page p-3">
+              <Icon name="check" size={18} className="mt-px shrink-0 text-brand" />
+              {x}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 grid gap-2">
+          <button className="btn-primary" onClick={() => setConfirming(false)}>Вернуться, я передумал</button>
+          <button className="btn-ghost text-muted" onClick={() => onAction('continue')}>
+            Всё верно, перевести {rub(amount)}
+          </button>
+        </div>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal
+      tone="danger"
+      onClose={onClose}
+      title={
+        <span className="flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-risk-high text-white">
+            <Icon name="lock" size={22} />
+          </span>
+          {it.title}
+        </span>
+      }
+    >
+      <div className="rounded-2xl bg-page p-4 text-sm">
+        <span className="text-muted">Перевод </span>
+        <b>{rub(amount)}</b>
+        <span className="text-muted"> → {to}</span>
+      </div>
+      <p className="mt-4 text-[16px] leading-relaxed">{it.text}</p>
+
+      <div className="mt-5 text-sm font-bold uppercase tracking-wide text-muted">Почему мы так решили</div>
+      <ul className="mt-2 space-y-1.5">
+        {result.risk.reasons.map((r) => (
+          <li key={r} className="flex gap-2.5 text-[15px]">
+            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-risk-high" />
+            {r}
+          </li>
+        ))}
+      </ul>
+
+      {it.consequences.length > 0 && (
+        <div className="mt-5 rounded-2xl bg-risk-high/8 p-4" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, white)' }}>
+          <div className="text-sm font-bold">Чем это грозит владельцу карты</div>
+          <ul className="mt-2 space-y-1 text-[14px]">
+            {it.consequences.map((c) => <li key={c}>— {c}</li>)}
+          </ul>
+          <div className="mt-2 text-xs text-muted">Это не юридическая консультация.</div>
+        </div>
+      )}
+
+      <div className="mt-6 grid gap-2">
+        <button className="btn-primary" onClick={() => onAction('cancel')}>Отменить перевод</button>
+        <button className="btn-ghost" onClick={() => onAction('offered_job')}>
+          <Icon name="lifebuoy" size={18} /> Мне предложили подработку
+        </button>
+        <button className="btn-ghost" onClick={() => onAction('check_message')}>
+          <Icon name="shield" size={18} /> Проверить сообщение
+        </button>
+        <button className="mt-1 text-sm font-semibold text-muted hover:text-ink" onClick={() => setConfirming(true)}>
+          Это мои деньги, продолжить
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ---------- Безопасный выход ----------
+const BRANCH_ICON: Record<string, string> = { A: 'plus', B: 'send', C: 'card', D: 'lock' }
+const ACTION_LABEL: Record<string, string> = {
+  return_funds: 'Вернуть через банк',
+  block_contact: 'Заблокировать контакт',
+  evidence: 'Сохранить переписку',
+  notify_parent: 'Подготовить сообщение взрослому',
+  pause_outgoing: 'Поставить переводы на паузу',
+  report_bank: 'Сообщить банку',
+  report_police: 'Подготовить заявление',
+  block_card: 'Заблокировать карту',
+  logout_all: 'Выйти со всех устройств',
+}
+
+export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onComplete }: {
+  persona: Persona
+  txs: Transaction[]
+  initialBranch?: SosBranch['id']
+  onClose: () => void
+  onChanged: () => void
+  onComplete: () => void
+}) {
+  const [branches, setBranches] = useState<SosBranch[]>([])
+  const [branchId, setBranchId] = useState<SosBranch['id'] | null>(initialBranch ?? null)
+  const [done, setDone] = useState<Record<number, string>>({})
+  const [busy, setBusy] = useState<number | null>(null)
+
+  useEffect(() => {
+    api.sosBranches().then(setBranches)
+  }, [])
+
+  const branch = branches.find((b) => b.id === branchId)
+  const actionable = branch?.steps.filter((s) => s.action).length ?? 0
+  const finished = branch && Object.keys(done).length >= actionable
+
+  const run = async (i: number, action: string) => {
+    setBusy(i)
+    try {
+      let text = ''
+      if (action === 'return_funds') {
+        const incoming = [...txs].reverse().find((t) => t.direction === 'in' && (t.flagged || t.is_new_counterparty) && !t.frozen)
+        if (!incoming) text = 'Подозрительных зачислений не найдено'
+        else {
+          const r = await api.returnFunds(persona.id, incoming.id)
+          text = `Заморожено ${rub(r.frozen_amount)}, заявка ${r.claim_id}. Банк вернёт деньги отправителю.`
+        }
+      } else if (action === 'pause_outgoing') {
+        await api.pauseOutgoing(persona.id)
+        text = 'Исходящие переводы на паузе 24 часа'
+      } else {
+        text = (await api.sosAction(persona.id, action)).result
+      }
+      setDone((d) => ({ ...d, [i]: text }))
+      onChanged()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (!branch) {
+    return (
+      <Modal title="Безопасный выход" onClose={onClose}>
+        <p className="mb-5 text-[15px] leading-relaxed text-muted">
+          Вы не первый, и это можно исправить. Чем раньше вы сообщите банку, тем проще выйти из ситуации.
+          Выберите, что произошло:
+        </p>
+        <div className="grid gap-2">
+          {branches.map((b) => (
+            <button key={b.id} onClick={() => { setBranchId(b.id); setDone({}) }} className="flex items-center gap-4 rounded-2xl border-2 border-line p-4 text-left transition hover:border-brand/40">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
+                <Icon name={BRANCH_ICON[b.id]} />
+              </span>
+              <span className="flex-1 font-semibold">{b.title}</span>
+              <Icon name="chevron" className="text-muted" />
+            </button>
+          ))}
+        </div>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal title={branch.title} onClose={onClose} onBack={() => setBranchId(null)}>
+      <ol className="space-y-3">
+        {branch.steps.map((s, i) => (
+          <li key={i} className={`rounded-2xl border p-4 transition ${done[i] ? 'border-risk-low/40 bg-risk-low/5' : 'border-line'}`}>
+            <div className="flex gap-3">
+              <span className={`grid size-7 shrink-0 place-items-center rounded-full text-sm font-bold ${done[i] ? 'bg-risk-low text-white' : 'bg-page'}`}>
+                {done[i] ? <Icon name="check" size={15} strokeWidth={2.6} /> : i + 1}
+              </span>
+              <div className="flex-1">
+                <p className="text-[15px] leading-snug">{s.text}</p>
+                {s.action && !done[i] && (
+                  <button className="btn-primary mt-3 px-4 py-2 text-sm" disabled={busy !== null} onClick={() => run(i, s.action!)}>
+                    {busy === i ? 'Выполняем…' : ACTION_LABEL[s.action] ?? 'Выполнить'}
+                  </button>
+                )}
+                {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-[#137a55]">{done[i]}</p>}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-xs text-muted">Это не юридическая консультация. Тексты — из открытых материалов ЦБ и МВД.</p>
+      {finished && (
+        <div className="animate-rise mt-5 rounded-3xl p-5 text-white" style={{ background: 'linear-gradient(135deg, #5b3df5, #ff5fa2)' }}>
+          <div className="text-lg font-bold">Вы всё сделали правильно</div>
+          <p className="mt-1 text-sm text-white/85">Банк получил обращение. Дальше с вами свяжется специалист.</p>
+          <button className="btn mt-4 bg-white text-ink" onClick={() => { onComplete(); onClose() }}>
+            Готово · +50 XP
+          </button>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
+// ---------- Проверка сообщения (Щит) ----------
+export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
+  initialText?: string
+  onClose: () => void
+  onOpenSos: () => void
+}) {
+  const [text, setText] = useState(initialText)
+  const [result, setResult] = useState<ShieldResult | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const check = async () => {
+    setBusy(true)
+    try {
+      setResult(await api.shield(text))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title="Проверить сообщение" onClose={onClose}>
+      <p className="mb-3 text-[15px] text-muted">Вставьте текст из мессенджера — покажем признаки мошенничества.</p>
+      <textarea
+        className="field min-h-[110px] resize-none"
+        placeholder="Например: «Подработка без опыта, прими перевод и перешли дальше»"
+        value={text}
+        onChange={(e) => { setText(e.target.value); setResult(null) }}
+      />
+      <button className="btn-primary mt-3 w-full" disabled={!text.trim() || busy} onClick={check}>
+        {busy ? 'Проверяем…' : 'Проверить'}
+      </button>
+
+      {result && (
+        <div className="animate-rise mt-5 space-y-4">
+          <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: `color-mix(in srgb, ${RISK_COLOR[result.risk]} 10%, white)` }}>
+            <span className="grid size-10 place-items-center rounded-xl text-white" style={{ background: RISK_COLOR[result.risk] }}>
+              <Icon name={result.risk === 'low' ? 'check' : 'alert'} size={20} />
+            </span>
+            <div>
+              <div className="font-bold">Риск: {RISK_LABEL[result.risk]}</div>
+              <div className="text-sm text-muted">{result.explanation}</div>
+            </div>
+          </div>
+          {result.red_flags.length > 0 && (
+            <div>
+              <div className="text-sm font-bold">Признаки</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {result.red_flags.map((f) => <span key={f} className="chip bg-page">{f}</span>)}
+              </div>
+            </div>
+          )}
+          {result.advice.length > 0 && (
+            <div>
+              <div className="text-sm font-bold">Что делать</div>
+              <ul className="mt-2 space-y-1 text-[15px]">
+                {result.advice.map((a) => <li key={a}>— {a}</li>)}
+              </ul>
+            </div>
+          )}
+          {result.scheme === 'drop_recruitment' && (
+            <button className="btn-ghost w-full" onClick={onOpenSos}>
+              <Icon name="lifebuoy" size={18} /> Открыть «Безопасный выход»
+            </button>
+          )}
+        </div>
+      )}
+    </Modal>
+  )
+}
+
+// ---------- Урок ----------
+export function LessonModal({ lesson, onClose, onFinish }: { lesson: Lesson; onClose: () => void; onFinish: () => void }) {
+  const [i, setI] = useState(0)
+  const [answer, setAnswer] = useState<number | null>(null)
+  const total = lesson.cards.length + (lesson.quiz ? 1 : 0)
+  const isQuiz = lesson.quiz && i === lesson.cards.length
+  const last = i === total - 1
+
+  return (
+    <Modal title={lesson.title} onClose={onClose}>
+      <div className="mb-4 flex gap-1.5">
+        {Array.from({ length: total }).map((_, k) => (
+          <span key={k} className={`h-1.5 flex-1 rounded-full ${k <= i ? 'bg-brand' : 'bg-line'}`} />
+        ))}
+      </div>
+      {!isQuiz ? (
+        <div key={i} className="animate-rise min-h-[140px] rounded-3xl bg-brand-soft p-6">
+          <div className="text-lg font-bold">{lesson.cards[i].title}</div>
+          <p className="mt-2 text-[15px] leading-relaxed">{lesson.cards[i].text}</p>
+        </div>
+      ) : (
+        <div className="animate-rise">
+          <div className="font-bold">{lesson.quiz!.question}</div>
+          <div className="mt-3 grid gap-2">
+            {lesson.quiz!.options.map((o, k) => {
+              const state = answer === null ? '' : k === lesson.quiz!.answer ? 'border-risk-low bg-risk-low/10' : k === answer ? 'border-risk-high bg-risk-high/10' : 'opacity-60'
+              return (
+                <button key={o} disabled={answer !== null} onClick={() => setAnswer(k)} className={`rounded-2xl border-2 border-line p-3.5 text-left font-medium ${state}`}>
+                  {o}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+      <button
+        className="btn-primary mt-6 w-full"
+        disabled={Boolean(isQuiz && answer === null)}
+        onClick={() => (last ? (onFinish(), onClose()) : setI(i + 1))}
+      >
+        {last ? `Завершить · +${lesson.xp} XP` : 'Дальше'}
+      </button>
+    </Modal>
+  )
+}

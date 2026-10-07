@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from app import content
-from app.schemas import Persona, Transaction
+from app.schemas import Persona, Risk, Transaction
 
 
 @dataclass
@@ -17,6 +17,7 @@ class Account:
     transactions: list[Transaction] = field(default_factory=list)
     outgoing_paused_until: datetime | None = None
     xp: int = 0
+    last_intercept: Risk | None = None  # последний перехваченный перевод — для панели «что видит банк»
 
     @property
     def balance(self) -> float:
@@ -45,6 +46,7 @@ class FakeBank:
                     counterparty=h["counterparty"],
                     is_new_counterparty=False,
                     channel=h.get("channel", "sbp"),
+                    category=h.get("category"),
                 )
             )
         self._accounts[persona_id] = account
@@ -55,8 +57,15 @@ class FakeBank:
             return self.reset(persona_id)
         return self._accounts[persona_id]
 
-    def incoming(self, persona_id: str, amount: float, counterparty: str, is_new: bool) -> Transaction:
+    def incoming(
+        self, persona_id: str, amount: float, counterparty: str, is_new: bool, flagged: bool | None = None
+    ) -> Transaction:
         account = self.get(persona_id)
+        if flagged is None:
+            # Сценарные зачисления проходят через ту же проверку, что и ручные «Пополнить»
+            from app.services.risk import score_incoming
+
+            flagged = score_incoming(account, amount, counterparty, is_new).level != "low"
         tx = Transaction(
             id=uuid.uuid4().hex[:8],
             ts=datetime.now(),
@@ -64,12 +73,15 @@ class FakeBank:
             direction="in",
             counterparty=counterparty,
             is_new_counterparty=is_new,
+            flagged=flagged,
         )
         account.transactions.append(tx)
         account.persona.balance += amount
         return tx
 
-    def outgoing(self, persona_id: str, amount: float, to: str) -> Transaction:
+    def outgoing(
+        self, persona_id: str, amount: float, to: str, channel: str = "sbp", category: str = "transfers"
+    ) -> Transaction:
         account = self.get(persona_id)
         tx = Transaction(
             id=uuid.uuid4().hex[:8],
@@ -78,6 +90,8 @@ class FakeBank:
             direction="out",
             counterparty=to,
             is_new_counterparty=to not in account.known_counterparties(),
+            channel=channel,
+            category=category,
         )
         account.transactions.append(tx)
         account.persona.balance -= amount
@@ -97,6 +111,12 @@ class FakeBank:
             if tx.direction == "in" and tx.is_new_counterparty and not tx.frozen:
                 return tx
         return None
+
+    def available(self, persona_id: str) -> float:
+        """Баланс без замороженных сумм — их тратить нельзя."""
+        account = self.get(persona_id)
+        frozen = sum(t.amount for t in account.transactions if t.frozen)
+        return account.balance - frozen
 
 
 bank = FakeBank()

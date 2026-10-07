@@ -94,3 +94,21 @@
 | GET | `/api/lessons/{id}` | Урок: `{id, title, xp, cards[], quiz}` |
 | GET | `/api/quest/{id}` | Граф квеста: `{start, nodes[{id, speaker, text, choices[{text, next}], ending?}]}` |
 | POST | `/api/progress` | `{persona_id, lesson_id \| quest_id}` → `{xp, level}` |
+
+## Песочница и профиль клиента (ветка `ariasokuss`)
+
+Алгоритм в два этапа (`backend/app/services/risk.py`):
+1. **Зачисление** — `score_incoming`: сравнение с профилем (свои отправители, средний чек пополнения). Подозрительное зачисление не блокируется, а помечается `flagged: true`.
+2. **Перевод** — `score_transfer`: если помеченные деньги пытаются переслать дальше (транзит), при риске ≥ 0.7 перевод перехватывается.
+
+| Метод | Путь | Что делает |
+|---|---|---|
+| POST | `/api/personas/{id}/reset` | Сброс аккаунта к истории из `content/personas.json` |
+| GET | `/api/personas/{id}/profile` | `Profile`: `avg_topup`, `avg_spend`, `known_senders`, `known_recipients`, `min_transit_minutes` |
+| POST | `/api/payments/topup` | `{persona_id, sender: "Мама" \| "Папа" \| "Неизвестный", amount}` → `OperationResponse` (`ok` / `flagged`) |
+| POST | `/api/payments/pay` | `{persona_id, merchant, category, amount}` → `OperationResponse` |
+| POST | `/api/payments/transfer` | + поле `confirmed: bool` — «Это мои деньги» после перехвата |
+| POST | `/api/sos/action` | `{persona_id, action}` — демо-действия «Безопасного выхода» (блокировка контакта, заявление и т. п.) |
+| POST | `/api/assistant/chat` | `{persona_id, message, history}` → `{reply, suggestions, action, source}`; правила, или LLM при `LLM_PROVIDER=ollama` |
+
+`Transaction` дополнен полями `category` и `flagged`; `LiveRisk` — полем `profile`.

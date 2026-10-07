@@ -1,16 +1,14 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import AppPage from './app/AppPage'
-import DemoHome from './demo/DemoHome'
-import DemoPage from './demo/DemoPage'
+import AccountPicker from './pages/AccountPicker'
+import Cabinet from './pages/Cabinet'
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/demo" replace />} />
-      <Route path="/demo" element={<DemoHome />} />
-      <Route path="/demo/:scenarioId" element={<DemoPage />} />
-      <Route path="/app" element={<AppPage />} />
+      <Route path="/" element={<AccountPicker />} />
+      <Route path="/u/:personaId" element={<Cabinet />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

@@ -18,7 +18,31 @@ export interface Transaction {
   counterparty: string
   is_new_counterparty: boolean
   channel: string
+  category: string | null
   frozen: boolean
+  flagged: boolean
+}
+
+export interface Risk {
+  score: number
+  level: RiskLevel
+  reasons: string[]
+}
+
+export interface Profile {
+  avg_topup: number
+  avg_spend: number
+  known_senders: string[]
+  known_recipients: string[]
+  min_transit_minutes: number | null
+}
+
+export interface OperationResponse {
+  status: 'ok' | 'flagged' | 'rejected'
+  transaction: Transaction | null
+  risk: Risk
+  message: string
+  balance: number
 }
 
 export interface ChatMessage {
@@ -39,6 +63,7 @@ export interface LiveRisk {
   score: number
   level: RiskLevel
   signals: string[]
+  profile: Profile | null
 }
 
 export interface DemoState {
@@ -62,7 +87,7 @@ export type InterceptAction = 'cancel' | 'offered_job' | 'check_message' | 'cont
 
 export interface TransferResponse {
   status: 'ok' | 'intercepted'
-  risk: { score: number; level: RiskLevel; reasons: string[] }
+  risk: Risk
   intercept: {
     title: string
     text: string
@@ -82,4 +107,29 @@ export interface SosBranch {
   id: 'A' | 'B' | 'C' | 'D'
   title: string
   steps: SosStep[]
+}
+
+export interface Lesson {
+  id: string
+  title: string
+  xp: number
+  cards: { title: string; text: string }[]
+  quiz: { question: string; options: string[]; answer: number } | null
+}
+
+export interface ShieldResult {
+  risk: RiskLevel
+  score: number
+  scheme: string
+  red_flags: string[]
+  explanation: string
+  consequences: string[]
+  advice: string[]
+}
+
+export interface AssistantReply {
+  reply: string
+  suggestions: string[]
+  action: string | null
+  source: 'rules' | 'llm'
 }

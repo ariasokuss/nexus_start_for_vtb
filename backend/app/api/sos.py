@@ -11,6 +11,7 @@ from app.schemas import (
     ReportResponse,
     ReturnFundsRequest,
     ReturnFundsResponse,
+    SosActionRequest,
 )
 from app.services.bank import bank
 from app.services.demo import engine
@@ -52,6 +53,24 @@ def pause_outgoing(req: PersonaRequest):
     account = bank.get(req.persona_id)
     account.outgoing_paused_until = datetime.now() + timedelta(hours=24)
     return {"paused_until": account.outgoing_paused_until}
+
+
+# Действия «Безопасного выхода», которые в демо только фиксируются (реальной интеграции нет)
+ACTION_RESULTS = {
+    "block_contact": "Контакт заблокирован, переписка сохранена",
+    "evidence": "Переписка сохранена и прикреплена к обращению",
+    "notify_parent": "Готов текст сообщения для взрослого — отправка по вашему решению",
+    "report_bank": "Обращение в банк отправлено вместе с хронологией операций",
+    "report_police": "Черновик заявления в полицию готов, список доказательств приложен",
+    "block_card": "Карта заблокирована, перевыпуск заказан",
+    "logout_all": "Вы вышли со всех устройств, пароль нужно сменить при следующем входе",
+}
+
+
+@router.post("/action")
+def action(req: SosActionRequest):
+    engine.publish_for_persona(req.persona_id)
+    return {"action": req.action, "result": ACTION_RESULTS.get(req.action, "Готово")}
 
 
 @router.post("/report", response_model=ReportResponse)

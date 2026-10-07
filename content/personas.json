@@ -6,10 +6,18 @@
     "balance": 1200,
     "description": "Школьник, 10 класс. Получил «подработку» в мессенджере.",
     "history": [
+      {"days_ago": 34, "amount": 1500, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
+      {"days_ago": 30, "amount": 420, "direction": "out", "counterparty": "Кофейня у школы", "channel": "card", "category": "food"},
+      {"days_ago": 27, "amount": 1000, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
+      {"days_ago": 24, "amount": 249, "direction": "out", "counterparty": "Подписка на музыку", "channel": "card", "category": "subscriptions"},
+      {"days_ago": 21, "amount": 1500, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
+      {"days_ago": 18, "amount": 690, "direction": "out", "counterparty": "Кинотеатр", "channel": "card", "category": "fun"},
+      {"days_ago": 13, "amount": 2000, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
+      {"days_ago": 11, "amount": 1290, "direction": "out", "counterparty": "Магазин кроссовок", "channel": "card", "category": "clothes"},
       {"days_ago": 6, "amount": 1500, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
-      {"days_ago": 5, "amount": 350, "direction": "out", "counterparty": "Кофейня у школы", "channel": "card"},
-      {"days_ago": 3, "amount": 200, "direction": "out", "counterparty": "Саша (друг)", "channel": "sbp"},
-      {"days_ago": 1, "amount": 249, "direction": "out", "counterparty": "Подписка на музыку", "channel": "card"}
+      {"days_ago": 5, "amount": 350, "direction": "out", "counterparty": "Кофейня у школы", "channel": "card", "category": "food"},
+      {"days_ago": 3, "amount": 200, "direction": "out", "counterparty": "Саша (друг)", "channel": "sbp", "category": "transfers"},
+      {"days_ago": 1, "amount": 249, "direction": "out", "counterparty": "Подписка на музыку", "channel": "card", "category": "subscriptions"}
     ]
   },
   {
@@ -19,8 +27,14 @@
     "balance": 2600,
     "description": "Студент колледжа. Уже один раз переслал деньги «работодателю», теперь ему угрожают.",
     "history": [
+      {"days_ago": 38, "amount": 3000, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
+      {"days_ago": 33, "amount": 560, "direction": "out", "counterparty": "Столовая", "channel": "card", "category": "food"},
+      {"days_ago": 28, "amount": 2000, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
+      {"days_ago": 22, "amount": 1500, "direction": "out", "counterparty": "Магазин одежды", "channel": "card", "category": "clothes"},
+      {"days_ago": 17, "amount": 300, "direction": "out", "counterparty": "Игровой магазин", "channel": "card", "category": "fun"},
       {"days_ago": 10, "amount": 3000, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
-      {"days_ago": 4, "amount": 400, "direction": "out", "counterparty": "Столовая", "channel": "card"}
+      {"days_ago": 7, "amount": 500, "direction": "out", "counterparty": "Лёша (друг)", "channel": "sbp", "category": "transfers"},
+      {"days_ago": 4, "amount": 400, "direction": "out", "counterparty": "Столовая", "channel": "card", "category": "food"}
     ]
   },
   {
@@ -30,10 +44,15 @@
     "balance": 4800,
     "description": "Студентка 2 курса, бариста по выходным. Первая зарплата.",
     "history": [
+      {"days_ago": 40, "amount": 5000, "direction": "in", "counterparty": "Стипендия", "channel": "salary"},
+      {"days_ago": 35, "amount": 2500, "direction": "in", "counterparty": "Мама", "channel": "sbp"},
+      {"days_ago": 31, "amount": 1650, "direction": "out", "counterparty": "Доставка еды", "channel": "card", "category": "food"},
+      {"days_ago": 25, "amount": 2400, "direction": "out", "counterparty": "Магазин одежды", "channel": "card", "category": "clothes"},
       {"days_ago": 20, "amount": 5000, "direction": "in", "counterparty": "Стипендия", "channel": "salary"},
-      {"days_ago": 12, "amount": 299, "direction": "out", "counterparty": "Онлайн-кинотеатр", "channel": "card"},
-      {"days_ago": 8, "amount": 199, "direction": "out", "counterparty": "Музыкальный сервис", "channel": "card"},
-      {"days_ago": 2, "amount": 1850, "direction": "out", "counterparty": "Доставка еды", "channel": "card"}
+      {"days_ago": 12, "amount": 299, "direction": "out", "counterparty": "Онлайн-кинотеатр", "channel": "card", "category": "subscriptions"},
+      {"days_ago": 8, "amount": 199, "direction": "out", "counterparty": "Музыкальный сервис", "channel": "card", "category": "subscriptions"},
+      {"days_ago": 6, "amount": 1500, "direction": "in", "counterparty": "Папа", "channel": "sbp"},
+      {"days_ago": 2, "amount": 1850, "direction": "out", "counterparty": "Доставка еды", "channel": "card", "category": "food"}
     ]
   }
 ]

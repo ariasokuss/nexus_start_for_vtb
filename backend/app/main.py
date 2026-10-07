@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import demo, learning, payments, shield, sos
+from app.api import assistant, demo, learning, payments, shield, sos
 
 app = FastAPI(title="nexus · Старт", version="0.1.0", description="Контракты: docs/api.md")
 
@@ -12,7 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for module in (demo, payments, sos, shield, learning):
+for module in (demo, payments, sos, shield, learning, assistant):
     app.include_router(module.router)
 
 

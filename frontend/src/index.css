@@ -1,14 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* Нейтральный «банковский» стиль. Логотип и фирменные цвета ВТБ — только после письменного разрешения организаторов. */
+/* Собственный стиль раздела «Старт». Логотипы и фирменные цвета банков не используем. */
 @theme {
-  --color-brand: #1f4bd8;
-  --color-brand-dark: #0b2a8a;
-  --color-risk-high: #e5484d;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-page: #f3f4f7;
+  --color-ink: #16171d;
+  --color-muted: #6b6f7d;
+  --color-line: #e7e8ee;
+
+  --color-brand: #5b3df5;
+  --color-brand-soft: #eeeaff;
+  --color-lime: #c8f135;
+  --color-coral: #ff6b5a;
+  --color-sky: #3cc3f0;
+  --color-pink: #ff5fa2;
+
+  --color-risk-high: #f0443a;
   --color-risk-medium: #f5a524;
-  --color-risk-low: #30a46c;
+  --color-risk-low: #22b07d;
+
+  --shadow-card: 0 1px 2px rgb(22 23 29 / 0.04), 0 8px 28px rgb(22 23 29 / 0.06);
+  --shadow-pop: 0 20px 60px rgb(22 23 29 / 0.18);
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased;
+  @apply bg-page text-ink antialiased;
+  font-feature-settings: 'tnum' 1;
+}
+
+@utility card {
+  @apply rounded-[28px] bg-white;
+  box-shadow: var(--shadow-card);
+}
+
+@utility chip {
+  @apply inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-semibold transition active:scale-[0.98] disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand text-white hover:bg-[#4a2ee0];
+}
+@utility btn-ghost {
+  @apply btn bg-page text-ink hover:bg-line;
+}
+@utility btn-danger {
+  @apply btn bg-risk-high text-white hover:brightness-95;
+}
+
+@utility field {
+  @apply w-full rounded-2xl border border-line bg-white px-4 py-3 text-[15px] outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+.animate-rise { animation: rise 0.28s ease-out both; }
+.animate-fade { animation: fade 0.2s ease-out both; }
+.animate-slide { animation: slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise, .animate-fade, .animate-slide { animation: none; }
 }
