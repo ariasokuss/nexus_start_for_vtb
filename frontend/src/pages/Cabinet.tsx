@@ -9,6 +9,7 @@ import type {
   LiveRisk,
   OperationResponse,
   Persona,
+  Progress,
   SosBranch,
   Transaction,
   TransferResponse,
@@ -19,9 +20,10 @@ import BankSees from '../components/BankSees'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import Operations from '../components/Operations'
-import { InterceptModal, LessonModal, ShieldModal, SosModal } from '../components/SafetyModals'
+import { InterceptModal, ShieldModal, SosModal } from '../components/SafetyModals'
 import ScenarioPanel from '../components/ScenarioPanel'
 import Spending from '../components/Spending'
+import { StoriesRow, StoryViewer } from '../components/Stories'
 import { AVATAR_GRADIENT, greeting, rub } from '../lib'
 
 type ModalState =
@@ -31,7 +33,6 @@ type ModalState =
   | { kind: 'intercept'; result: TransferResponse; to: string; amount: number }
   | { kind: 'sos'; branch?: SosBranch['id'] }
   | { kind: 'shield'; text?: string }
-  | { kind: 'lesson'; lesson: Lesson }
   | null
 
 const PERSONA_IDS = ['artem', 'dima', 'katya']
@@ -45,7 +46,9 @@ export default function Cabinet() {
   const [scenario, setScenario] = useState<DemoState | null>(null)
   const [nudge, setNudge] = useState<Nudge | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [xp, setXp] = useState(0)
+  const [stories, setStories] = useState<Lesson[]>([])
+  const [story, setStory] = useState<number | null>(null)
+  const [progress, setProgress] = useState<Progress>({ xp: 0, level: 1, done: [], gained: 0 })
   const seenFlagged = useRef<Set<string> | null>(null)
 
   const say = useCallback((text: string, suggestions?: string[]) => {
@@ -58,7 +61,13 @@ export default function Cabinet() {
   }
 
   const refresh = useCallback(async () => {
-    const [personas, t, l] = await Promise.all([api.personas(), api.transactions(personaId), api.liveRisk(personaId)])
+    const [personas, t, l, pr] = await Promise.all([
+      api.personas(),
+      api.transactions(personaId),
+      api.liveRisk(personaId),
+      api.getProgress(personaId).catch(() => ({ xp: 0, level: 1, done: [], gained: 0 })),
+    ])
+    setProgress(pr)
     setPersona(personas.find((p) => p.id === personaId) ?? null)
     setTxs(t)
     setLive(l)
@@ -82,9 +91,17 @@ export default function Cabinet() {
   useEffect(() => {
     seenFlagged.current = null
     setScenario(null)
-    setXp(0)
     refresh()
   }, [refresh])
+
+  useEffect(() => {
+    api.lessons().then((list) => {
+      setStories(list)
+      // Прямая ссылка на историю: /u/artem?story=2
+      const k = Number(new URLSearchParams(window.location.search).get('story'))
+      if (new URLSearchParams(window.location.search).has('story') && list[k]) setStory(k)
+    })
+  }, [])
 
   if (!PERSONA_IDS.includes(personaId)) return <Navigate to="/" replace />
 
@@ -144,7 +161,6 @@ export default function Cabinet() {
   const startScenario = async () => {
     seenFlagged.current = null
     setScenario(await api.demoReset(personaId))
-    setXp(0)
     await refresh()
   }
 
@@ -155,7 +171,14 @@ export default function Cabinet() {
 
   const openLesson = async (type: string) => {
     const { lesson } = await api.event(personaId, type)
-    if (lesson) setModal({ kind: 'lesson', lesson })
+    const index = stories.findIndex((s) => s.id === lesson?.id)
+    if (index >= 0) setStory(index)
+  }
+
+  const finishStory = async (lesson: Lesson) => {
+    const r = await api.progress(personaId, { lesson_id: lesson.id })
+    setProgress(r)
+    return r.gained
   }
 
   const onExpect = (expect: Record<string, unknown>) => {
@@ -177,7 +200,6 @@ export default function Cabinet() {
     await api.resetPersona(personaId)
     setScenario(null)
     seenFlagged.current = null
-    setXp(0)
     notify('Аккаунт сброшен к исходному состоянию')
     await refresh()
   }
@@ -188,7 +210,9 @@ export default function Cabinet() {
 
   const frozen = txs.filter((t) => t.frozen).reduce((s, t) => s + t.amount, 0)
   const suspicious = txs.filter((t) => t.flagged && !t.frozen).reduce((s, t) => s + t.amount, 0)
-  const level = 1 + Math.floor(xp / 100)
+  const xp = progress.xp
+  const done = new Set(progress.done)
+  const storiesDone = stories.filter((s) => done.has(`lesson:${s.id}`)).length
 
   const tiles = [
     { icon: 'plus', title: 'Пополнить', sub: 'От родителей или другого человека', onClick: () => setModal({ kind: 'topup' }) },
@@ -203,13 +227,6 @@ export default function Cabinet() {
       <header className="sticky top-0 z-10 border-b border-line bg-page/85 backdrop-blur">
         <div className="mx-auto flex max-w-[1180px] items-center gap-4 px-4 py-3.5 sm:px-8">
           <Link to="/"><Logo size={34} /></Link>
-          <nav className="ml-6 hidden gap-1 md:flex">
-            {[['Главная', true], ['Операции', false], ['Безопасность', false]].map(([label, active]) => (
-              <span key={String(label)} className={`rounded-full px-3.5 py-1.5 text-[15px] ${active ? 'bg-white font-semibold shadow-sm' : 'text-muted'}`}>
-                {label}
-              </span>
-            ))}
-          </nav>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {!scenario && (
               <button className="btn-primary px-4 py-2.5 text-sm" onClick={startScenario}>
@@ -233,6 +250,12 @@ export default function Cabinet() {
         <h1 className="text-[34px] font-extrabold tracking-tight sm:text-[44px]">
           {greeting()}, {persona.name}
         </h1>
+
+        {stories.length > 0 && (
+          <section className="mt-6">
+            <StoriesRow stories={stories} done={done} onOpen={setStory} />
+          </section>
+        )}
 
         <div className="mt-7 grid gap-6 lg:grid-cols-[380px_1fr]">
           {/* ---------- Левая колонка ---------- */}
@@ -266,13 +289,15 @@ export default function Cabinet() {
               </span>
               <div className="flex-1">
                 <div className="flex justify-between text-[15px]">
-                  <span className="font-bold">Уровень {level}</span>
+                  <span className="font-bold">Уровень {progress.level}</span>
                   <span className="text-muted">{xp % 100} / 100 XP</span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-page">
                   <div className="h-full rounded-full bg-gradient-to-r from-brand to-pink transition-all duration-700" style={{ width: `${xp % 100}%` }} />
                 </div>
-                <div className="mt-1.5 text-xs text-muted">Очки за уроки и правильные решения</div>
+                <div className="mt-1.5 text-xs text-muted">
+                  Историй пройдено: {storiesDone} из {stories.length}
+                </div>
               </div>
             </div>
 
@@ -362,7 +387,7 @@ export default function Cabinet() {
           onClose={() => setModal(null)}
           onChanged={refresh}
           onComplete={() => {
-            setXp((x) => x + 50)
+            api.progress(personaId, { action: 'safe_exit' }).then(setProgress)
             say('Вы всё сделали правильно. Деньги вернутся владельцу через банк, а переписка сохранена как доказательство. Если вам снова напишут — не отвечайте и сразу сообщите банку.', ['Что такое дроп?', 'Как устроен алгоритм?'])
           }}
         />
@@ -370,14 +395,14 @@ export default function Cabinet() {
       {modal?.kind === 'shield' && (
         <ShieldModal initialText={modal.text} onClose={() => setModal(null)} onOpenSos={() => setModal({ kind: 'sos' })} />
       )}
-      {modal?.kind === 'lesson' && (
-        <LessonModal
-          lesson={modal.lesson}
-          onClose={() => setModal(null)}
-          onFinish={() => {
-            api.progress(personaId, modal.lesson.id)
-            setXp((x) => x + modal.lesson.xp)
-          }}
+      {story !== null && stories[story] && (
+        <StoryViewer
+          stories={stories}
+          start={story}
+          done={done}
+          onClose={() => setStory(null)}
+          onFinish={finishStory}
+          onAction={onAssistantAction}
         />
       )}
 

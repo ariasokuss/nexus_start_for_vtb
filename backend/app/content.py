@@ -48,3 +48,8 @@ def lesson_triggers() -> list[dict]:
 @lru_cache
 def quest(quest_id: str) -> dict:
     return _read(settings.content_dir / "quest" / f"{quest_id}.json")
+
+
+def lessons() -> list[dict]:
+    items = [lesson(p.stem) for p in (settings.content_dir / "lessons").glob("*.json") if p.stem != "triggers"]
+    return sorted(items, key=lambda x: x.get("order", 99))

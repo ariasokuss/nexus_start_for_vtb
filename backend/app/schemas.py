@@ -211,9 +211,12 @@ class ProgressRequest(BaseModel):
     persona_id: str
     lesson_id: str | None = None
     quest_id: str | None = None
+    action: str | None = None  # правильное действие вне уроков, напр. "safe_exit"
     result: str = "done"
 
 
 class ProgressResponse(BaseModel):
     xp: int
     level: int
+    done: list[str] = []
+    gained: int = 0

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
-import type { InterceptAction, Lesson, Persona, ShieldResult, SosBranch, Transaction, TransferResponse } from '../api/types'
+import type { InterceptAction, Persona, ShieldResult, SosBranch, Transaction, TransferResponse } from '../api/types'
 import { RISK_COLOR, RISK_LABEL, rub } from '../lib'
 import Icon from './Icon'
 import Modal from './Modal'
@@ -281,52 +281,6 @@ export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
           )}
         </div>
       )}
-    </Modal>
-  )
-}
-
-// ---------- Урок ----------
-export function LessonModal({ lesson, onClose, onFinish }: { lesson: Lesson; onClose: () => void; onFinish: () => void }) {
-  const [i, setI] = useState(0)
-  const [answer, setAnswer] = useState<number | null>(null)
-  const total = lesson.cards.length + (lesson.quiz ? 1 : 0)
-  const isQuiz = lesson.quiz && i === lesson.cards.length
-  const last = i === total - 1
-
-  return (
-    <Modal title={lesson.title} onClose={onClose}>
-      <div className="mb-4 flex gap-1.5">
-        {Array.from({ length: total }).map((_, k) => (
-          <span key={k} className={`h-1.5 flex-1 rounded-full ${k <= i ? 'bg-brand' : 'bg-line'}`} />
-        ))}
-      </div>
-      {!isQuiz ? (
-        <div key={i} className="animate-rise min-h-[140px] rounded-3xl bg-brand-soft p-6">
-          <div className="text-lg font-bold">{lesson.cards[i].title}</div>
-          <p className="mt-2 text-[15px] leading-relaxed">{lesson.cards[i].text}</p>
-        </div>
-      ) : (
-        <div className="animate-rise">
-          <div className="font-bold">{lesson.quiz!.question}</div>
-          <div className="mt-3 grid gap-2">
-            {lesson.quiz!.options.map((o, k) => {
-              const state = answer === null ? '' : k === lesson.quiz!.answer ? 'border-risk-low bg-risk-low/10' : k === answer ? 'border-risk-high bg-risk-high/10' : 'opacity-60'
-              return (
-                <button key={o} disabled={answer !== null} onClick={() => setAnswer(k)} className={`rounded-2xl border-2 border-line p-3.5 text-left font-medium ${state}`}>
-                  {o}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-      <button
-        className="btn-primary mt-6 w-full"
-        disabled={Boolean(isQuiz && answer === null)}
-        onClick={() => (last ? (onFinish(), onClose()) : setI(i + 1))}
-      >
-        {last ? `Завершить · +${lesson.xp} XP` : 'Дальше'}
-      </button>
     </Modal>
   )
 }

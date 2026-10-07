@@ -21,6 +21,12 @@ def event(req: EventRequest):
     return {"lesson": None}
 
 
+@router.get("/lessons")
+def lessons():
+    """Все уроки в виде сторис, по порядку показа."""
+    return content.lessons()
+
+
 @router.get("/lessons/{lesson_id}")
 def lesson(lesson_id: str):
     try:
@@ -37,13 +43,33 @@ def quest(quest_id: str):
         raise HTTPException(404, "Нет такого квеста")
 
 
+ACTION_XP = {"safe_exit": 50}
+
+
+def _progress(account, gained: int = 0) -> ProgressResponse:
+    return ProgressResponse(
+        xp=account.xp, level=1 + account.xp // XP_PER_LEVEL, done=sorted(account.done), gained=gained
+    )
+
+
+@router.get("/progress/{persona_id}", response_model=ProgressResponse)
+def get_progress(persona_id: str):
+    return _progress(bank.get(persona_id))
+
+
 @router.post("/progress", response_model=ProgressResponse)
 def progress(req: ProgressRequest):
+    """Начисляет XP один раз за каждый урок, квест или правильное действие."""
     account = bank.get(req.persona_id)
-    xp = 0
+    key, xp = None, 0
     if req.lesson_id:
-        xp = content.lesson(req.lesson_id).get("xp", 20)
+        key, xp = f"lesson:{req.lesson_id}", content.lesson(req.lesson_id).get("xp", 20)
     elif req.quest_id:
-        xp = content.quest(req.quest_id).get("xp", 50)
+        key, xp = f"quest:{req.quest_id}", content.quest(req.quest_id).get("xp", 50)
+    elif req.action:
+        key, xp = f"action:{req.action}", ACTION_XP.get(req.action, 0)
+    if not key or key in account.done:
+        return _progress(account)
+    account.done.add(key)
     account.xp += xp
-    return ProgressResponse(xp=account.xp, level=1 + account.xp // XP_PER_LEVEL)
+    return _progress(account, gained=xp)

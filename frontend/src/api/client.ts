@@ -5,6 +5,7 @@ import type {
   LiveRisk,
   OperationResponse,
   Persona,
+  Progress,
   ScenarioInfo,
   ShieldResult,
   SosBranch,
@@ -63,8 +64,10 @@ export const api = {
   shield: (text: string) => post<ShieldResult>('/api/shield/check', { text }),
   event: (personaId: string, type: string) =>
     post<{ lesson: Lesson | null }>('/api/events', { persona_id: personaId, type }),
-  progress: (personaId: string, lessonId: string) =>
-    post<{ xp: number; level: number }>('/api/progress', { persona_id: personaId, lesson_id: lessonId }),
+  lessons: () => request<Lesson[]>('/api/lessons'),
+  getProgress: (personaId: string) => request<Progress>(`/api/progress/${personaId}`),
+  progress: (personaId: string, body: { lesson_id?: string; action?: string }) =>
+    post<Progress>('/api/progress', { persona_id: personaId, ...body }),
 
   assistant: (personaId: string, message: string, history: { role: string; text: string }[]) =>
     post<AssistantReply>('/api/assistant/chat', { persona_id: personaId, message, history }),

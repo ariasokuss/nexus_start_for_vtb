@@ -88,3 +88,13 @@ def test_pay_and_assistant():
     assert r["status"] == "ok"
     a = client.post("/api/assistant/chat", json={"persona_id": "katya", "message": "что такое дроп?"}).json()
     assert "Дроп" in a["reply"] and a["suggestions"]
+
+
+def test_lessons_as_stories_and_xp_once():
+    stories = client.get("/api/lessons").json()
+    assert stories[0]["id"] == "dont_share_card" and all(s["cards"] and s["short"] for s in stories)
+    client.post("/api/personas/katya/reset")
+    first = client.post("/api/progress", json={"persona_id": "katya", "lesson_id": "ndfl"}).json()
+    again = client.post("/api/progress", json={"persona_id": "katya", "lesson_id": "ndfl"}).json()
+    assert first["gained"] == 20 and again["gained"] == 0 and again["xp"] == 20
+    assert "lesson:ndfl" in client.get("/api/progress/katya").json()["done"]

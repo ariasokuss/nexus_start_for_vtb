@@ -17,6 +17,7 @@ class Account:
     transactions: list[Transaction] = field(default_factory=list)
     outgoing_paused_until: datetime | None = None
     xp: int = 0
+    done: set[str] = field(default_factory=set)  # пройденные сторис и действия, за которые уже дали XP
     last_intercept: Risk | None = None  # последний перехваченный перевод — для панели «что видит банк»
 
     @property

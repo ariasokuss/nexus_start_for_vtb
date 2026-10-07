@@ -112,3 +112,6 @@
 | POST | `/api/assistant/chat` | `{persona_id, message, history}` → `{reply, suggestions, action, source}`; правила, или LLM при `LLM_PROVIDER=ollama` |
 
 `Transaction` дополнен полями `category` и `flagged`; `LiveRisk` — полем `profile`.
+| GET | `/api/lessons` | Все уроки как сторис (`short` — подпись плитки, `cta` — кнопка в конце), по полю `order` |
+| GET | `/api/progress/{id}` | `{xp, level, done, gained}` |
+| POST | `/api/progress` | `{persona_id, lesson_id \| quest_id \| action}` — XP начисляется один раз; `action: "safe_exit"` даёт +50 |

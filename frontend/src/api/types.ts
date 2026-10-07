@@ -112,7 +112,10 @@ export interface SosBranch {
 export interface Lesson {
   id: string
   title: string
+  short: string
+  order?: number
   xp: number
+  cta?: { label: string; action: string }
   cards: { title: string; text: string }[]
   quiz: { question: string; options: string[]; answer: number } | null
 }
@@ -132,4 +135,11 @@ export interface AssistantReply {
   suggestions: string[]
   action: string | null
   source: 'rules' | 'llm'
+}
+
+export interface Progress {
+  xp: number
+  level: number
+  done: string[]
+  gained: number
 }

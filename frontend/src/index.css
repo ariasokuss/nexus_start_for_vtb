@@ -60,6 +60,10 @@ body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes grow {
+  from { width: 0; }
+  to { width: 100%; }
+}
 @keyframes fade {
   from { opacity: 0; }
   to { opacity: 1; }
