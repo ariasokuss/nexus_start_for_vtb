@@ -1,30 +1,43 @@
-"""Признаки для скоринга перевода в момент попытки. Должны совпадать с бэкендом
-(backend/app/services/risk.py) — когда модель готова, бэкенд импортирует/копирует этот модуль.
+"""Признаки для скоринга перевода в момент попытки.
 
-TODO(Даша): реализовать build_features() и словарь PHRASES для причин в интерфейсе.
+Сами формулы живут в backend/app/ml/features.py — их же использует бэкенд,
+поэтому признаки при обучении и в проде считаются одним кодом.
+Здесь — сборка обучающей выборки из синтетических транзакций.
 """
+import bisect
+import sys
+from datetime import timedelta
+from pathlib import Path
 
-FEATURES = [
-    "minutes_since_stranger_incoming",   # минут с последнего зачисления от незнакомца
-    "forward_share",                     # доля этого зачисления, которую переводят дальше
-    "is_new_recipient",                  # получатель новый
-    "unique_stranger_senders_24h",
-    "unique_stranger_senders_7d",
-    "client_age",
-    "card_age_days",
-    "turnover_spike",                    # оборот за 24ч / медианный дневной оборот за 30д
-    "is_night",
-    "cash_withdrawal_after_incoming",
-]
+import pandas as pd
 
-# Признак → человеческая фраза для экрана перехвата (из SHAP берём топ-3)
-PHRASES = {
-    "minutes_since_stranger_incoming": "Деньги пришли от незнакомца {value:.0f} мин назад",
-    "forward_share": "Ты переводишь {value:.0%} этой суммы дальше",
-    "is_new_recipient": "Новый получатель, раньше переводов ему не было",
-    "unique_stranger_senders_24h": "{value:.0f} переводов от разных незнакомцев за сутки",
-}
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "backend"))
+
+from app.ml.features import FEATURES, PHRASES, Transfer, build_features, phrase, rule_score  # noqa: E402
+
+__all__ = ["FEATURES", "PHRASES", "Transfer", "build_features", "phrase", "rule_score", "build_dataset"]
 
 
-def build_features(history, transfer) -> dict:
-    raise NotImplementedError
+def build_dataset(tx: pd.DataFrame, clients: pd.DataFrame) -> pd.DataFrame:
+    """Одна строка на каждый исходящий p2p-перевод (channel == "sbp"): признаки + label."""
+    clients = clients.set_index("client_id")
+    rows = []
+    for client_id, g in tx.sort_values(["client_id", "ts"]).groupby("client_id", sort=False):
+        c = clients.loc[client_id]
+        items = list(g.itertuples(index=False))
+        times = [t.ts for t in items]
+        known: set[str] = set()
+        start = 0
+        for i, t in enumerate(items):
+            if t.direction == "out" and t.channel == "sbp":
+                lo = bisect.bisect_left(times, t.ts - timedelta(days=30), 0, i)
+                while start < lo:
+                    known.add(items[start].counterparty)
+                    start += 1
+                f = build_features(
+                    items[lo:i], Transfer(ts=t.ts, amount=t.amount, to=t.counterparty),
+                    int(c.age), float(c.card_age_days) + (t.ts - times[0]).days, known=known,
+                )
+                f.update(client_id=client_id, profile=c.profile, tx_id=t.tx_id, ts=t.ts, amount=t.amount, label=int(t.label))
+                rows.append(f)
+    return pd.DataFrame(rows)
