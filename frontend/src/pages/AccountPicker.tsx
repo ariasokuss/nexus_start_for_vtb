@@ -32,7 +32,6 @@ export default function AccountPicker() {
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-6 sm:px-8">
         <Logo />
-        <span className="text-sm text-muted">Демонстрационная версия · данные вымышленные</span>
       </header>
 
       <main className="mx-auto max-w-[1180px] px-4 pb-16 sm:px-8">
