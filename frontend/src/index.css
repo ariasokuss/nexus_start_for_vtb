@@ -60,6 +60,10 @@ body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes drop {
+  from { opacity: 0; transform: translateY(-24px); }
+  to { opacity: 1; transform: none; }
+}
 @keyframes grow {
   from { width: 0; }
   to { width: 100%; }
@@ -74,8 +78,10 @@ body {
 }
 .animate-rise { animation: rise 0.28s ease-out both; }
 .animate-fade { animation: fade 0.2s ease-out both; }
+.animate-drop { animation: drop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .animate-slide { animation: slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-rise, .animate-fade, .animate-slide { animation: none; }
+  .animate-rise, .animate-fade, .animate-drop { animation: drop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-slide { animation: none; }
 }

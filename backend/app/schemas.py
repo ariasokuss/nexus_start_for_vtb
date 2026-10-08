@@ -118,6 +118,8 @@ class BankEvent(BaseModel):
     amount: float | None = None
     counterparty: str | None = None
     is_new_counterparty: bool = True
+    channel: Literal["sbp", "card", "cash", "salary"] = "sbp"
+    category: str | None = None
     text: str | None = None
 
 
@@ -128,6 +130,7 @@ class DemoStep(BaseModel):
     chat: list[ChatMessage] = []
     bank_events: list[BankEvent] = []
     expect: dict | None = None  # что жюри должно сделать на шаге, напр. {"action": "transfer", ...}
+    popup: dict | None = None  # какое окно банка показать на шаге: incoming, request_transfer, threat, lesson, done …
 
 
 class DemoState(BaseModel):
@@ -198,6 +201,7 @@ class ShieldResponse(BaseModel):
     consequences: list[str]
     advice: list[str]
     source: Literal["classifier+llm", "classifier+template"]
+    recognized_text: str | None = None  # что распознали на скриншоте
 
 
 # ---------- Уроки / прогресс ----------

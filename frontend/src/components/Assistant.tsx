@@ -37,7 +37,13 @@ export function Mascot({ size = 44, mood = 'calm' }: { size?: number; mood?: 'ca
   )
 }
 
-export default function Assistant({ personaId, personaName, nudge, onAction, shifted = false }: {
+export interface Ask {
+  id: number
+  text: string
+}
+
+export default function Assistant({ personaId, personaName, nudge, ask, onAction, shifted = false }: {
+  ask?: Ask | null
   shifted?: boolean
   personaId: string
   personaName: string
@@ -64,6 +70,16 @@ export default function Assistant({ personaId, personaName, nudge, onAction, shi
     if (!open) setPeek(nudge.text)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nudge?.id])
+
+  // Вопрос «Спросить Бита» из окна сценария: открываем чат и сразу задаём его
+  useEffect(() => {
+    if (!ask) return
+    setOpen(true)
+    setPeek(null)
+    setAlert(false)
+    send(ask.text)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask?.id])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })

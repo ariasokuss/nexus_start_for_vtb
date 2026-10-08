@@ -30,6 +30,7 @@ const PATHS: Record<string, string> = {
   film: 'M4 5h16v14H4V5zM8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4',
   music: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   bus: 'M5 4h14v13H5V4zM5 11h14M8 20v-3M16 20v-3M8 14h.01M16 14h.01',
+  image: 'M4 5h16v14H4V5zM4 16l5-5 4 4 2-2 5 5M15 9.5a1.5 1.5 0 1 0 0-.01',
   game: 'M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-5 2l-1-1H9l-1 1a3 3 0 0 1-5-2v-2a3 3 0 0 1 3-3zM8 11v3M6.5 12.5h3M15 12h.01M17 13.5h.01',
 }
 

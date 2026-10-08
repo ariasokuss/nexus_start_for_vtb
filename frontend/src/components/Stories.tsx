@@ -7,13 +7,30 @@ import StoryArt, { storyBackground } from './StoryArt'
 const SLIDE_MS = 7000
 
 // Ряд сторис на главной — квадратные плитки с картинкой и заголовком.
-export function StoriesRow({ stories, done, onOpen }: {
+export function StoriesRow({ stories, done, onOpen, onOpenQuest, questDone = false }: {
   stories: Lesson[]
   done: Set<string>
   onOpen: (index: number) => void
+  onOpenQuest?: () => void
+  questDone?: boolean
 }) {
   return (
     <div className="-mx-4 flex gap-3.5 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
+      {onOpenQuest && (
+        <button
+          onClick={onOpenQuest}
+          className={`animate-rise group relative shrink-0 rounded-[30px] p-[3px] transition hover:-translate-y-0.5 ${questDone ? 'bg-line' : 'bg-gradient-to-br from-lime via-sky to-brand'}`}
+          aria-label="Квест «А что было бы, если…»"
+        >
+          <div className="relative size-[148px] overflow-hidden rounded-[27px] border-[3px] border-page sm:size-[164px]" style={{ background: storyBackground('quest') }}>
+            <StoryArt id="quest" uid="tile" className="absolute -right-3 -top-2 size-[118px] transition duration-300 group-hover:scale-110 sm:size-[130px]" />
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-lime px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-ink">Квест</span>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3.5 pt-8 text-left text-[16px] font-bold leading-tight text-white">
+              А что было бы, если…
+            </div>
+          </div>
+        </button>
+      )}
       {stories.map((s, i) => {
         const seen = done.has(`lesson:${s.id}`)
         return (
@@ -101,7 +118,7 @@ export function StoryViewer({ stories, start, done, onClose, onFinish, onAction 
   const already = done.has(`lesson:${story.id}`) && gained === 0
 
   return (
-    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm">
+    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/85">
       <button onClick={() => goStory(si - 1)} disabled={si === 0} className="mr-6 hidden size-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-0 md:grid" aria-label="Предыдущая история">
         <Icon name="back" />
       </button>

@@ -55,7 +55,15 @@ export interface DemoStep {
   title: string
   hint: string
   chat: ChatMessage[]
+  bank_events: { type: string; amount: number | null; counterparty: string | null }[]
   expect: Record<string, unknown> | null
+  popup: ScenarioPopup | null
+}
+
+export interface ScenarioPopup {
+  type: 'incoming' | 'request_transfer' | 'pressure' | 'history' | 'threat' | 'lesson' | 'done'
+  title?: string
+  text?: string
 }
 
 export interface LiveRisk {
@@ -128,6 +136,7 @@ export interface ShieldResult {
   explanation: string
   consequences: string[]
   advice: string[]
+  recognized_text: string | null
 }
 
 export interface AssistantReply {
@@ -142,4 +151,22 @@ export interface Progress {
   level: number
   done: string[]
   gained: number
+}
+
+export interface QuestNode {
+  id: string
+  speaker: 'recruiter' | 'narrator' | 'bank'
+  text: string
+  ending?: 'good' | 'bad'
+  choices: { text: string; next: string }[]
+}
+
+export interface Quest {
+  id: string
+  title: string
+  short: string
+  xp: number
+  intro: string
+  start: string
+  nodes: QuestNode[]
 }

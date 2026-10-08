@@ -20,7 +20,7 @@ export default function Modal({ title, onClose, onBack, children, width = 'max-w
   }, [onClose])
 
   return (
-    <div className="animate-fade fixed inset-0 z-40 flex items-end justify-center bg-ink/40 backdrop-blur-[2px] sm:items-center sm:p-6" onClick={onClose}>
+    <div className="animate-fade fixed inset-0 z-40 flex items-end justify-center bg-ink/40 sm:items-center sm:p-6" onClick={onClose}>
       <div
         role="dialog"
         aria-modal

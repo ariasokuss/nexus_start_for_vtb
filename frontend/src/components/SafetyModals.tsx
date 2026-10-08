@@ -224,9 +224,12 @@ export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
   const [text, setText] = useState(initialText)
   const [result, setResult] = useState<ShieldResult | null>(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [preview, setPreview] = useState<string | null>(null)
 
   const check = async () => {
     setBusy(true)
+    setError('')
     try {
       setResult(await api.shield(text))
     } finally {
@@ -234,18 +237,62 @@ export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
     }
   }
 
+  // Скриншот переписки → распознаём текст на сервере (EasyOCR) → та же проверка
+  const checkImage = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = String(reader.result)
+      setPreview(dataUrl)
+      setResult(null)
+      setError('')
+      setBusy(true)
+      try {
+        const r = await api.shieldImage(dataUrl)
+        setResult(r)
+        if (r.recognized_text) setText(r.recognized_text)
+      } catch (e) {
+        setError((e as Error).message)
+      } finally {
+        setBusy(false)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
     <Modal title="Проверить сообщение" onClose={onClose}>
-      <p className="mb-3 text-[15px] text-muted">Вставьте текст из мессенджера — покажем признаки мошенничества.</p>
+      <p className="mb-3 text-[15px] text-muted">Вставьте текст из мессенджера или загрузите скриншот — покажем признаки мошенничества.</p>
       <textarea
         className="field min-h-[110px] resize-none"
         placeholder="Например: «Подработка без опыта, прими перевод и перешли дальше»"
         value={text}
         onChange={(e) => { setText(e.target.value); setResult(null) }}
       />
-      <button className="btn-primary mt-3 w-full" disabled={!text.trim() || busy} onClick={check}>
-        {busy ? 'Проверяем…' : 'Проверить'}
-      </button>
+      <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+        <button className="btn-primary" disabled={!text.trim() || busy} onClick={check}>
+          {busy ? 'Проверяем…' : 'Проверить'}
+        </button>
+        <label className={`btn-ghost cursor-pointer ${busy ? 'pointer-events-none opacity-50' : ''}`} title="Загрузить скриншот переписки">
+          <Icon name="image" size={18} /> <span className="hidden sm:inline">Скриншот</span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) checkImage(f)
+              e.target.value = ''
+            }}
+          />
+        </label>
+      </div>
+      {preview && (
+        <div className="mt-3 flex items-center gap-3 rounded-2xl bg-page p-2.5 text-sm text-muted">
+          <img src={preview} alt="Скриншот" className="size-14 rounded-xl object-cover" />
+          {busy ? 'Распознаём текст на скриншоте…' : result?.recognized_text ? 'Текст распознан и подставлен в поле выше' : 'Скриншот загружен'}
+        </div>
+      )}
+      {error && <div className="mt-3 rounded-2xl bg-risk-high/10 p-3 text-sm text-risk-high">{error}</div>}
 
       {result && (
         <div className="animate-rise mt-5 space-y-4">

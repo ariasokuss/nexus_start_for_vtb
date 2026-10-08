@@ -8,6 +8,7 @@ export const STORY_THEME: Record<string, { from: string; to: string; glow: strin
   ndfl: { from: '#0a2018', to: '#14432f', glow: '#22d38f' },
   subscriptions: { from: '#1c0b26', to: '#4a1645', glow: '#ff5fa2' },
   budget_503020: { from: '#1a1a08', to: '#3a3a10', glow: '#c8f135' },
+  quest: { from: '#0b1a2e', to: '#1d2f6b', glow: '#3cc3f0' },
 }
 
 const FALLBACK = STORY_THEME.dont_share_card
@@ -144,6 +145,28 @@ const ART: Record<string, (u: string) => React.ReactNode> = {
         <circle cx="152" cy="146" r="26" fill="#c8f135" />
         <path d="M141 146a11 11 0 1 1 4 8.5M141 146v-8M141 146h8" stroke="#16171d" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </g>
+    </g>
+  ),
+  // Квест: два варианта ответа в чате
+  quest: (u) => (
+    <g>
+      <g filter={`url(#${u}-shadow)`}>
+        <rect x="30" y="40" width="112" height="44" rx="18" fill="#ffffff" />
+        <rect x="44" y="55" width="70" height="7" rx="3.5" fill="#16171d" opacity="0.6" />
+        <rect x="44" y="67" width="44" height="7" rx="3.5" fill="#16171d" opacity="0.35" />
+      </g>
+      <g filter={`url(#${u}-shadow)`}>
+        <rect x="70" y="98" width="104" height="34" rx="14" fill="#22b07d" />
+        <path d="M86 115l6 6 12-12" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="112" y="111" width="46" height="7" rx="3.5" fill="#fff" opacity="0.85" />
+      </g>
+      <g filter={`url(#${u}-shadow)`}>
+        <rect x="70" y="140" width="104" height="34" rx="14" fill="#f0443a" />
+        <path d="M88 151l10 10M98 151l-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+        <rect x="112" y="153" width="46" height="7" rx="3.5" fill="#fff" opacity="0.85" />
+      </g>
+      <circle cx="160" cy="44" r="20" fill="#c8f135" filter={`url(#${u}-shadow)`} />
+      <text x="160" y="53" textAnchor="middle" fontSize="26" fontWeight="800" fill="#16171d" fontFamily="Manrope, sans-serif">?</text>
     </g>
   ),
   // Объёмная диаграмма 50/30/20

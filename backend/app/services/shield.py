@@ -3,9 +3,11 @@
 Пайплайн: (скриншот → OCR) → классификатор ставит вердикт → LLM объясняет → фолбэк на шаблон.
 Вердикт — классификатор из ml/ (TF-IDF + логрег, app/ml/shield_model.py) плюс баллы за группы признаков
 схемы (classify); если файла модели нет — только признаки. Регулярки дают человеческие red_flags и подтип схемы.
-TODO(тимлид): OCR через EasyOCR для image_base64.
+Скриншот → текст: EasyOCR (необязательная зависимость, requirements-ocr.txt).
 """
+import base64
 import re
+from functools import lru_cache
 
 from app import content
 from app.ml import shield_model
@@ -145,9 +147,29 @@ def _template(scheme: str, risk: str = "high") -> tuple[str, list[str]]:
     )
 
 
+class OcrUnavailable(Exception):
+    pass
+
+
+@lru_cache
+def _ocr_reader():
+    try:
+        import easyocr
+    except ImportError as e:
+        raise OcrUnavailable("Распознавание скриншотов не установлено (pip install -r requirements-ocr.txt)") from e
+    return easyocr.Reader(["ru", "en"], gpu=False, verbose=False)
+
+
+def ocr(image_base64: str) -> str:
+    """Текст со скриншота переписки. EasyOCR — локально, картинка никуда не отправляется и не хранится."""
+    raw = base64.b64decode(image_base64.split(",", 1)[-1])
+    return " ".join(_ocr_reader().readtext(raw, detail=0, paragraph=True))
+
+
 def check(text: str | None, image_base64: str | None) -> ShieldResponse:
+    recognized = None
     if not text and image_base64:
-        text = ""  # TODO(тимлид): OCR
+        text = recognized = ocr(image_base64)
     text = text or ""
     scheme, score, flags = classify(text)
     if scheme == "safe":
@@ -167,4 +189,5 @@ def check(text: str | None, image_base64: str | None) -> ShieldResponse:
     return ShieldResponse(
         risk=risk, score=round(score, 2), scheme=scheme, red_flags=flags,
         explanation=explanation, consequences=consequences, advice=advice, source=source,
+        recognized_text=recognized,
     )

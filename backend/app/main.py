@@ -1,3 +1,5 @@
+import threading
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,6 +16,20 @@ app.add_middleware(
 
 for module in (demo, payments, sos, shield, learning, assistant):
     app.include_router(module.router)
+
+
+@app.on_event("startup")
+def warm_up_ocr():
+    """Модель распознавания скриншотов грузится ~20 с — делаем это в фоне при старте, а не на первом запросе."""
+    from app.services import shield
+
+    def load():
+        try:
+            shield._ocr_reader()
+        except shield.OcrUnavailable:
+            pass
+
+    threading.Thread(target=load, daemon=True).start()
 
 
 @app.get("/api/health")

@@ -6,6 +6,7 @@ import type {
   OperationResponse,
   Persona,
   Progress,
+  Quest,
   ScenarioInfo,
   ShieldResult,
   SosBranch,
@@ -62,11 +63,13 @@ export const api = {
     post<{ result: string }>('/api/sos/action', { persona_id: personaId, action }),
 
   shield: (text: string) => post<ShieldResult>('/api/shield/check', { text }),
+  shieldImage: (imageBase64: string) => post<ShieldResult>('/api/shield/check', { image_base64: imageBase64 }),
+  quest: (id: string) => request<Quest>(`/api/quest/${id}`),
   event: (personaId: string, type: string) =>
     post<{ lesson: Lesson | null }>('/api/events', { persona_id: personaId, type }),
   lessons: () => request<Lesson[]>('/api/lessons'),
   getProgress: (personaId: string) => request<Progress>(`/api/progress/${personaId}`),
-  progress: (personaId: string, body: { lesson_id?: string; action?: string }) =>
+  progress: (personaId: string, body: { lesson_id?: string; quest_id?: string; action?: string }) =>
     post<Progress>('/api/progress', { persona_id: personaId, ...body }),
 
   assistant: (personaId: string, message: string, history: { role: string; text: string }[]) =>

@@ -34,7 +34,10 @@ class DemoEngine:
             if ev.type == "incoming" and ev.amount:
                 bank.incoming(persona_id, ev.amount, ev.counterparty or "Неизвестный", ev.is_new_counterparty)
             elif ev.type == "outgoing" and ev.amount:
-                bank.outgoing(persona_id, ev.amount, ev.counterparty or "Неизвестный")
+                bank.outgoing(
+                    persona_id, ev.amount, ev.counterparty or "Неизвестный",
+                    channel=ev.channel, category=ev.category or "transfers",
+                )
 
     def state(self, scenario_id: str) -> DemoState:
         run = self._runs.get(scenario_id) or self.reset(scenario_id)
