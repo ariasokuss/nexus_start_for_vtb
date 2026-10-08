@@ -68,7 +68,7 @@ class Intercept(BaseModel):
     title: str
     text: str
     consequences: list[str]
-    actions: list[Literal["cancel", "offered_job", "check_message", "continue"]]
+    actions: list[Literal["cancel", "offered_job", "call_bank", "check_message", "continue"]]
 
 
 class TransferResponse(BaseModel):

@@ -91,7 +91,7 @@ export interface ScenarioInfo {
   steps_count: number
 }
 
-export type InterceptAction = 'cancel' | 'offered_job' | 'check_message' | 'continue'
+export type InterceptAction = 'cancel' | 'offered_job' | 'call_bank' | 'check_message' | 'continue'
 
 export interface TransferResponse {
   status: 'ok' | 'intercepted'

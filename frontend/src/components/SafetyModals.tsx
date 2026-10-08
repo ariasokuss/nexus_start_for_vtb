@@ -62,7 +62,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
       </div>
       <p className="mt-4 text-[16px] leading-relaxed">{it.text}</p>
 
-      <div className="mt-5 text-sm font-bold uppercase tracking-wide text-muted">Почему мы так решили</div>
+      <div className="mt-5 text-sm font-bold uppercase tracking-wide text-muted">Почему</div>
       <ul className="mt-2 space-y-1.5">
         {result.risk.reasons.map((r) => (
           <li key={r} className="flex gap-2.5 text-[15px]">
@@ -74,7 +74,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
 
       {it.consequences.length > 0 && (
         <div className="mt-5 rounded-2xl bg-risk-high/8 p-4" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, white)' }}>
-          <div className="text-sm font-bold">Чем это грозит владельцу карты</div>
+          <div className="text-sm font-bold">Чем это грозит</div>
           <ul className="mt-2 space-y-1 text-[14px]">
             {it.consequences.map((c) => <li key={c}>— {c}</li>)}
           </ul>
@@ -86,6 +86,9 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
         <button className="btn-primary" onClick={() => onAction('cancel')}>Отменить перевод</button>
         <button className="btn-ghost" onClick={() => onAction('offered_job')}>
           <Icon name="lifebuoy" size={18} /> Мне предложили подработку
+        </button>
+        <button className="btn-ghost" onClick={() => onAction('call_bank')}>
+          <Icon name="phone" size={18} /> Позвонить в банк
         </button>
         <button className="btn-ghost" onClick={() => onAction('check_message')}>
           <Icon name="shield" size={18} /> Проверить сообщение

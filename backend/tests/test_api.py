@@ -137,3 +137,15 @@ def test_keyword_baseline_for_eval_is_available():
     # ml/src/eval.py сравнивает модель с этим бейзлайном в metrics.md
     from app.services.shield import DROP_PATTERNS, _classify_keywords
     assert DROP_PATTERNS and _classify_keywords("прими перевод и переведи дальше", ["a", "b"])[0] == "drop_recruitment"
+
+
+def test_intercept_screen_is_short_and_offers_call():
+    # Итоги опроса: экран перегружен текстом, 36% хотят звонок банка, возраст ответственности знают 24%
+    client.post("/api/personas/artem/reset")
+    client.post("/api/payments/topup", json={"persona_id": "artem", "sender": "Неизвестный", "amount": 30000})
+    r = client.post("/api/payments/transfer", json={"persona_id": "artem", "to": "+79990001234", "amount": 27000}).json()
+    assert r["status"] == "intercepted"
+    assert len(r["risk"]["reasons"]) <= 2
+    assert len(r["intercept"]["consequences"]) == 2
+    assert "16 лет" in r["intercept"]["consequences"][0]
+    assert "call_bank" in r["intercept"]["actions"]

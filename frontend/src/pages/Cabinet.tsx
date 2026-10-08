@@ -180,6 +180,10 @@ export default function Cabinet() {
       notify('Перевод отменён')
     } else if (action === 'offered_job') {
       setModal({ kind: 'sos', branch: 'A' })
+    } else if (action === 'call_bank') {
+      // 36% в опросе предпочли бы звонок банка. В реальном приложении — звонок в поддержку с контекстом перехвата.
+      setModal(null)
+      notify('Перевод не отправлен. Соединяем с банком — в демо звонок не совершается')
     } else if (action === 'check_message') {
       setModal({ kind: 'shield', text: lastRecruiterMessage() })
     } else {
