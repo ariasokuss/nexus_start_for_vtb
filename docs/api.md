@@ -85,12 +85,15 @@
   "explanation": "…", "consequences": ["…"], "advice": ["…"],
   "source": "classifier+template" }   // или "classifier+llm"
 ```
+`scheme`: `drop_recruitment` · `phishing` · `relative_in_trouble` · `prize` · `other_fraud` (мошенничество другого типа) · `safe`.
 
 ## Уроки, квест, прогресс
 
 | Метод | Путь | Тело → ответ |
 |---|---|---|
 | POST | `/api/events` | `{persona_id, type, payload}` → `{lesson \| null}`; типы: `p2p_stranger, salary, subscription, overspend, bank_call` |
+
+Условия урока — поле `when` в `content/lessons/triggers.json`. Поля `payload`: `p2p_stranger` → `amount` (≥ 1000), `salary` → `is_first` (true), `subscription` → `active_subscriptions` (≥ 3), `overspend` → `overspend_ratio` (≥ 1.3). Если поля нет в `payload`, условие не проверяется и урок показывается.
 | GET | `/api/lessons/{id}` | Урок: `{id, title, xp, cards[], quiz}` |
 | GET | `/api/quest/{id}` | Граф квеста: `{start, nodes[{id, speaker, text, choices[{text, next}], ending?}]}` |
 | POST | `/api/progress` | `{persona_id, lesson_id \| quest_id}` → `{xp, level}` |

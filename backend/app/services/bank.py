@@ -11,6 +11,25 @@ from app import content
 from app.schemas import Persona, Risk, Transaction
 
 
+# Категория трат по названию магазина — для истории из content/personas.json, где её нет
+CATEGORY_BY_NAME = {
+    "Доставка еды": "food", "Кофейня": "food", "Кофейня у школы": "food", "Продукты": "food", "Столовая": "food",
+    "Одежда": "clothes", "Магазин одежды": "clothes", "Магазин кроссовок": "clothes",
+    "Кино": "fun", "Кинотеатр": "fun", "Игровой магазин": "fun",
+    "Музыкальный сервис": "subscriptions", "Онлайн-кинотеатр": "subscriptions", "Подписка на музыку": "subscriptions",
+}
+
+
+def _category(h: dict) -> str | None:
+    if h.get("category"):
+        return h["category"]
+    if h["direction"] != "out":
+        return None
+    if h.get("channel", "sbp") == "sbp":
+        return "transfers"
+    return CATEGORY_BY_NAME.get(h["counterparty"], "other")
+
+
 @dataclass
 class Account:
     persona: Persona
@@ -47,7 +66,7 @@ class FakeBank:
                     counterparty=h["counterparty"],
                     is_new_counterparty=False,
                     channel=h.get("channel", "sbp"),
-                    category=h.get("category"),
+                    category=_category(h),
                 )
             )
         self._accounts[persona_id] = account

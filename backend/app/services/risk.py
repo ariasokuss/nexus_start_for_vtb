@@ -6,11 +6,15 @@
 2. Перевод (score_transfer): если помеченные деньги пытаются переслать дальше — это транзит,
    типичный для дропа. При высоком риске перевод перехватывается.
 
-Сейчас — прозрачные правила (бейзлайн). TODO(Даша): заменить/дополнить CatBoost-моделью
-из ml/ (признаки — ml/src/features.py), причины — из SHAP через словарь фраз.
+Решение на этапе 2 принимает CatBoost-модель команды (app/ml/risk_model.py, признаки — app/ml/features.py,
+причины — SHAP). Если модели нет — прозрачные правила rule_score. К причинам модели добавляем
+сравнение с профилем клиента (во сколько раз сумма больше обычной), чтобы объяснение было понятнее.
 """
 from datetime import datetime, timedelta
 
+from app import content
+from app.ml import risk_model
+from app.ml.features import Transfer, build_features, rule_score
 from app.schemas import LiveRisk, Profile, Risk, Transaction
 from app.services.bank import Account
 
@@ -116,44 +120,41 @@ def score_incoming(account: Account, amount: float, sender: str, is_new: bool) -
     return Risk(score=score, level=_level(score), reasons=reasons)
 
 
+def _card_age_days(account: Account, now: datetime) -> float:
+    raw = content.personas().get(account.persona.id, {})
+    if "card_age_days" in raw:
+        return raw["card_age_days"]
+    first = min((t.ts for t in account.transactions), default=now)
+    return (now - first).total_seconds() / 86400
+
+
+def transfer_features(account: Account, to: str, amount: float, now: datetime | None = None) -> dict:
+    now = now or datetime.now()
+    history = sorted((t for t in account.transactions if t.ts <= now), key=lambda t: t.ts)
+    return build_features(history, Transfer(ts=now, amount=amount, to=to), account.persona.age, _card_age_days(account, now))
+
+
+def _profile_reasons(account: Account, to: str, amount: float) -> list[str]:
+    """Пояснения по профилю клиента — дополняют причины модели, на оценку не влияют."""
+    p = profile(account)
+    reasons = []
+    incoming = _suspicious_incoming(account, datetime.now())
+    if incoming and incoming.flagged:
+        reasons.append(f"Вы пытаетесь переслать деньги, которые банк уже пометил как подозрительные ({_rub(incoming.amount)})")
+    if p.avg_spend and amount / p.avg_spend >= 5:
+        reasons.append(f"Сумма {_times(amount / p.avg_spend)} больше ваших обычных трат ({_rub(p.avg_spend)})")
+    return reasons
+
+
 def score_transfer(account: Account, to: str, amount: float) -> Risk:
     """Этап 2: не пытаются ли переслать подозрительные деньги дальше."""
-    p = profile(account)
-    now = datetime.now()
-    score, reasons = 0.0, []
-
-    incoming = _suspicious_incoming(account, now)
-    if incoming:
-        mins = max(1, int((now - incoming.ts).total_seconds() // 60))
-        when = f"{mins} мин назад" if mins < 120 else f"{mins // 60} ч назад"
-        score += 0.35
-        reasons.append(f"{_rub(incoming.amount)} пришли от незнакомого отправителя {when}")
-        share = amount / incoming.amount
-        if share >= 0.7:
-            score += 0.3
-            reasons.append(f"Вы переводите {min(share, 1):.0%} этой суммы дальше")
-        if mins <= TRANSIT_FAST_MINUTES:
-            score += 0.1
-            reasons.append("Деньги уходят дальше почти сразу после зачисления — так работает транзит")
-
-    if to not in p.known_recipients and to not in account.known_counterparties():
-        score += 0.15
-        reasons.append("Новый получатель, раньше вы ему не переводили")
-
-    if p.avg_spend and amount / p.avg_spend >= 5:
-        score += 0.15
-        reasons.append(f"Сумма {_times(amount / p.avg_spend)} больше ваших обычных трат ({_rub(p.avg_spend)})")
-
-    if account.persona.age < 18 and incoming:
-        score += 0.1
-        reasons.append(f"Клиенту {account.persona.age} лет")
-
-    strangers = _strangers_today(account, now)
-    if len(strangers) >= 3:
-        score += 0.2
-        reasons.append(f"{len(strangers)} переводов от разных незнакомцев за сутки")
-
-    score = round(min(score, 1.0), 2)
+    features = transfer_features(account, to, amount)
+    if risk_model.available():
+        score, reasons = risk_model.predict(features)
+    else:
+        score, reasons = rule_score(features)
+    if score >= MEDIUM:
+        reasons += [r for r in _profile_reasons(account, to, amount) if r not in reasons]
     return Risk(score=score, level=_level(score), reasons=reasons)
 
 

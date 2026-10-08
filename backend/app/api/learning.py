@@ -9,14 +9,33 @@ router = APIRouter(prefix="/api", tags=["learning"])
 XP_PER_LEVEL = 100
 
 
+_OPS = {
+    "==": lambda a, b: a == b,
+    ">=": lambda a, b: a >= b,
+    ">": lambda a, b: a > b,
+    "<=": lambda a, b: a <= b,
+    "<": lambda a, b: a < b,
+}
+
+
+def _matches(trigger: dict, payload: dict) -> bool:
+    """Условия из triggers.json ("when"). Поля, которых нет в payload, не проверяем:
+    фронт может прислать событие без деталей — тогда урок показываем."""
+    for cond in trigger.get("when", []):
+        if cond["field"] in payload and not _OPS[cond["op"]](payload[cond["field"]], cond["value"]):
+            return False
+    return True
+
+
 @router.post("/events")
 def event(req: EventRequest):
-    """Движок триггеров: событие → урок.
+    """Движок триггеров: событие + условия по payload → урок.
 
-    TODO(Даша): условия по payload (пороги трат, счётчик подписок и т. п.).
+    Примеры payload: {"amount": 30000} для p2p_stranger, {"is_first": true} для salary,
+    {"active_subscriptions": 3} для subscription, {"overspend_ratio": 1.4} для overspend.
     """
     for trig in content.lesson_triggers():
-        if trig["event"] == req.type:
+        if trig["event"] == req.type and _matches(trig, req.payload):
             return {"lesson": content.lesson(trig["lesson_id"])}
     return {"lesson": None}
 

@@ -20,6 +20,8 @@ dist/
 # ML: большие артефакты не коммитим (кроме .gitkeep)
 ml/data/*
 !ml/data/.gitkeep
+# ручной тест Щита (150 сообщений от команды) коммитим
+!ml/data/messages_test_manual_*.csv
 ml/models/*
 !ml/models/.gitkeep
 
@@ -28,3 +30,6 @@ ml/models/*
 .vscode/
 .DS_Store
 Thumbs.db
+
+# служебные файлы CatBoost
+catboost_info/

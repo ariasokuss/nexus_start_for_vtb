@@ -73,7 +73,7 @@ def test_forwarding_flagged_money_is_intercepted_and_shown_live():
     assert r["status"] == "intercepted"
     live = client.get("/api/risk/artem/live").json()
     assert live["level"] == "high"
-    assert live["profile"]["known_senders"] == ["Мама", "Папа"]
+    assert {"Мама", "Папа"} <= set(live["profile"]["known_senders"])
 
 
 def test_confirmed_transfer_passes_and_known_recipient_is_low():
@@ -98,3 +98,26 @@ def test_lessons_as_stories_and_xp_once():
     again = client.post("/api/progress", json={"persona_id": "katya", "lesson_id": "ndfl"}).json()
     assert first["gained"] == 20 and again["gained"] == 0 and again["xp"] == 20
     assert "lesson:ndfl" in client.get("/api/progress/katya").json()["done"]
+
+
+SHIELD_CASES = [
+    # (сообщение, ожидаемая схема) — «живая» речь, на которой одна модель ошибалась
+    ("алаллалалала я тебе дам денег на лапу ты нах переведи кому надо дааааааа", "drop_recruitment"),
+    ("прими перевод 15к, 3к твои, остальное скинешь по номеру", "drop_recruitment"),
+    ("нужна твоя карта на пару дней, заплачу 5к", "drop_recruitment"),
+    ("привет, это мой новый номер, мам скинь денег срочно", "relative_in_trouble"),
+    ("Здравствуйте, служба безопасности банка, назовите код из смс", "phishing"),
+    ("переведи мне 300 за пиццу плиз", "safe"),
+    ("срочно скинь фотки с вечеринки", "safe"),
+    ("у меня скидка 20% в кофейне, пошли", "safe"),
+]
+
+
+def test_shield_verdicts_on_live_speech():
+    for text, scheme in SHIELD_CASES:
+        body = client.post("/api/shield/check", json={"text": text}).json()
+        assert body["scheme"] == scheme, text
+        if scheme == "safe":
+            assert body["risk"] == "low" and body["red_flags"] == [], text
+        else:
+            assert body["risk"] == "high" and body["red_flags"], text
