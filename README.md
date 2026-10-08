@@ -70,6 +70,8 @@ docs/       PLAN.md — план, TASKS.md — кто что делает, api.m
 - План: [docs/PLAN.md](docs/PLAN.md)
 - Кто что делает по дням: [docs/TASKS.md](docs/TASKS.md)
 - ТЗ на исследование пользователей: [docs/research/TZ_research.md](docs/research/TZ_research.md)
+- Бизнес-модель, рынок, конкуренты, метрики: [docs/business/business_model.md](docs/business/business_model.md)
+- Финансовая модель (Excel, 3 сценария): [docs/business/finmodel.xlsx](docs/business/finmodel.xlsx)
 
 ## Правила репозитория
 
