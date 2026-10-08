@@ -100,6 +100,22 @@ def keyword_baseline(texts) -> list[str]:
     return preds
 
 
+def hybrid(texts, proba_fn=None) -> list[str]:
+    """Гибрид из бэкенда (services/shield.classify): вероятности модели + баллы за признаки схемы.
+    proba_fn подменяет модель — чтобы на отложенных шаблонах гибрид не опирался на модель, видевшую их."""
+    sys.path.insert(0, str(ROOT.parent / "backend"))
+    from app.ml import shield_model
+    from app.services import shield
+    original = shield_model.predict_proba
+    if proba_fn:
+        shield_model.predict_proba = proba_fn
+    try:
+        schemes = [shield.classify(str(t))[0] for t in texts]
+    finally:
+        shield_model.predict_proba = original
+    return [s if s in ("drop_recruitment", "safe") else "other_fraud" for s in schemes]
+
+
 def shield_table(y, preds: dict[str, list[str]]) -> list[str]:
     lines = ["| Модель | Вербовка: precision | Вербовка: recall | Другое мошенн.: F1 | Нормальные: F1 | Accuracy |", "|---|---|---|---|---|---|"]
     for name, pred in preds.items():
@@ -120,9 +136,11 @@ def eval_shield() -> list[str]:
         f"### Синтетика, отложенные шаблоны ({len(hold)} сообщений)", "",
         "Модель не видела эти шаблоны при обучении — проверяем перенос на новые формулировки.", "",
     ]
+    holdout_proba = lambda t: dict(zip(clf.classes_, clf.predict_proba(vec.transform([t]))[0]))  # noqa: E731
     out += shield_table(hold.label.tolist(), {
         "Ключевые слова (бейзлайн)": keyword_baseline(hold.text),
         "TF-IDF + логрег": clf.predict(vec.transform(hold.text)).tolist(),
+        "Гибрид: модель + признаки схемы (в бэкенде)": hybrid(hold.text, holdout_proba),
     })
 
     files = sorted(DATA.glob("messages_test_manual_*.csv"))
@@ -140,6 +158,7 @@ def eval_shield() -> list[str]:
         out += shield_table(manual.label.tolist(), {
             "Ключевые слова (бейзлайн)": keyword_baseline(manual.text),
             "TF-IDF + логрег (финальная модель)": final,
+            "Гибрид: модель + признаки схемы (в бэкенде)": hybrid(manual.text),
         })
     out.append("")
     return out
