@@ -126,6 +126,7 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
   const [branches, setBranches] = useState<SosBranch[]>([])
   const [branchId, setBranchId] = useState<SosBranch['id'] | null>(initialBranch ?? null)
   const [done, setDone] = useState<Record<number, string>>({})
+  const [drafts, setDrafts] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState<number | null>(null)
 
   useEffect(() => {
@@ -151,7 +152,9 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
         await api.pauseOutgoing(persona.id)
         text = 'Исходящие переводы на паузе 24 часа'
       } else {
-        text = (await api.sosAction(persona.id, action)).result
+        const r = await api.sosAction(persona.id, action, branchId ?? undefined)
+        text = r.result
+        if (r.draft) setDrafts((d) => ({ ...d, [i]: r.draft! }))
       }
       setDone((d) => ({ ...d, [i]: text }))
       onChanged()
@@ -199,6 +202,15 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
                   </button>
                 )}
                 {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-[#137a55]">{done[i]}</p>}
+                {drafts[i] && (
+                  <details className="animate-fade mt-2 rounded-2xl bg-page p-3" open>
+                    <summary className="cursor-pointer text-sm font-semibold">Черновик — проверьте и отправьте</summary>
+                    <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-snug text-ink/80">{drafts[i]}</pre>
+                    <button className="chip mt-2 bg-white text-ink hover:bg-line" onClick={() => navigator.clipboard?.writeText(drafts[i])}>
+                      Скопировать
+                    </button>
+                  </details>
+                )}
               </div>
             </div>
           </li>

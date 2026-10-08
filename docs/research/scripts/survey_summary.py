@@ -7,6 +7,15 @@
     python docs/research/scripts/survey_summary.py docs/research/survey_raw.csv \
         --out docs/research/survey_results_auto.md --img docs/research/img
 
+Две выборки (онлайн-анкета + очный устный опрос, где ответы в форму вносили интервьюеры):
+
+    python docs/research/scripts/survey_summary.py docs/research/survey.csv \
+        --offline-from "08/10/2026 19:00" --out docs/research/survey_results_auto.md --img docs/research/img
+
+Анкеты с отметкой времени не раньше --offline-from считаются очными. Отчёт: гипотезы по всей выборке +
+таблица «онлайн против очной» по ключевым цифрам. Открытые ответы очной выборки — пересказ интервьюера,
+цитаты из них не берём.
+
 Графики строятся, только если установлен matplotlib.
 """
 import argparse
@@ -137,6 +146,53 @@ def load(path: Path) -> tuple[pd.DataFrame, dict]:
     return df, stats
 
 
+def split_by_method(df: pd.DataFrame, offline_from: str) -> pd.DataFrame:
+    """Метка выборки по отметке времени (первый столбец выгрузки)."""
+    ts = pd.to_datetime(df.iloc[:, 0], dayfirst=True, errors="coerce")
+    cutoff = pd.to_datetime(offline_from, dayfirst=True)
+    return df.assign(_method=["очный опрос" if t >= cutoff else "онлайн" for t in ts.fillna(pd.Timestamp.min)])
+
+
+def key_metrics(df: pd.DataFrame) -> dict[str, str]:
+    """Главные цифры по гипотезам — для сравнения выборок."""
+    if not len(df):
+        return {}
+    res = {}
+    offers = df[col(df, "2.1")].map(multi)
+    p, k, m, _ = share(offers.map(lambda s: bool(s) and NO_OFFERS not in s))
+    res["H1 получали предложения"] = f"{p:.0%} ({k}/{m})"
+    p, k, m, _ = share(df[col(df, "4.1")].str.strip().isin(WRONG_41))
+    res["H2 неверное действие с чужими деньгами"] = f"{p:.0%} ({k}/{m})"
+    p, k, m, _ = share(df[col(df, "3.1")].str.strip() == RIGHT_31)
+    res["H3 знают возраст ответственности (16)"] = f"{p:.0%} ({k}/{m})"
+    p, k, m, _ = share(df[col(df, "5.2")].str.strip() == WARNING_52)
+    res["H4 выбирают предупреждение"] = f"{p:.0%} ({k}/{m})"
+    try:
+        clarity = pd.to_numeric(df[col(df, "5.3")], errors="coerce").dropna()
+        res["H4 понятность экрана, из 5"] = f"{clarity.mean():.1f} (n={len(clarity)})"
+    except KeyError:
+        pass
+    p, k, m, _ = share(df[col(df, "6.3")].str.strip().isin(YES_63))
+    res["H5 готовы учиться в банке"] = f"{p:.0%} ({k}/{m})"
+    return res
+
+
+def compare_methods(df: pd.DataFrame) -> str:
+    groups = {name: g for name, g in df.groupby("_method")}
+    online, offline = key_metrics(groups.get("онлайн", df.iloc[0:0])), key_metrics(groups.get("очный опрос", df.iloc[0:0]))
+    allm = key_metrics(df)
+    rows = ["## Сравнение выборок", "",
+            "Онлайн — респонденты заполняли форму сами. Очный опрос — устно, ответы вносили интервьюеры "
+            "(открытые ответы там — пересказ интервьюера, цитаты из них не берём).", "",
+            f"| Показатель | Онлайн (n={len(groups.get('онлайн', []))}) | Очный опрос (n={len(groups.get('очный опрос', []))}) | Всего (n={len(df)}) |",
+            "|---|---|---|---|"]
+    for key in allm:
+        rows.append(f"| {key} | {online.get(key, '—')} | {offline.get(key, '—')} | {allm[key]} |")
+    rows += ["", "Если доли в двух выборках близки — два метода подтверждают одну картину. "
+             "Если сильно расходятся — разобраться до питча (разные аудитории? формулировка вопроса устно?).", ""]
+    return "\n".join(rows)
+
+
 def summarize(df: pd.DataFrame, stats: dict, img_dir: Path | None) -> str:
     n = len(df)
     out = ["# Результаты опроса по гипотезам (авто-сводка)", ""]
@@ -264,9 +320,17 @@ if __name__ == "__main__":
     p.add_argument("csv", type=Path)
     p.add_argument("--out", type=Path)
     p.add_argument("--img", type=Path, help="папка для графиков (нужен matplotlib)")
+    p.add_argument("--offline-from", help='анкеты с этого момента — очный опрос, напр. "08/10/2026 19:00"')
     args = p.parse_args()
     df, stats = load(args.csv)
+    if args.offline_from:
+        df = split_by_method(df, args.offline_from)
+        for name, g in df.groupby("_method"):
+            stats[f"из них {name}"] = len(g)
     report = summarize(df, stats, args.img)
+    if args.offline_from:
+        head, sep, rest = report.partition("## H1.")
+        report = head + compare_methods(df) + "\n" + sep + rest
     if args.out:
         args.out.write_text(report, encoding="utf-8")
         print(f"Готово: {args.out}")

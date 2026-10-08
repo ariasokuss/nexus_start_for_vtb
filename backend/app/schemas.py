@@ -183,6 +183,7 @@ class ReportResponse(BaseModel):
 class SosActionRequest(BaseModel):
     persona_id: str
     action: str
+    branch: Literal["A", "B", "C", "D"] | None = None  # для черновиков обращений
 
 
 class PersonaRequest(BaseModel):

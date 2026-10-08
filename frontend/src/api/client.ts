@@ -60,8 +60,8 @@ export const api = {
       operation_id: operationId,
     }),
   pauseOutgoing: (personaId: string) => post('/api/sos/pause-outgoing', { persona_id: personaId }),
-  sosAction: (personaId: string, action: string) =>
-    post<{ result: string }>('/api/sos/action', { persona_id: personaId, action }),
+  sosAction: (personaId: string, action: string, branch?: string) =>
+    post<{ result: string; draft?: string | null }>('/api/sos/action', { persona_id: personaId, action, branch }),
 
   shield: (text: string) => post<ShieldResult>('/api/shield/check', { text }),
   shieldImage: (imageBase64: string) => post<ShieldResult>('/api/shield/check', { image_base64: imageBase64 }),

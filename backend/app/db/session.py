@@ -1,7 +1,6 @@
 """Подключение к PostgreSQL.
 
-Пока состояние демо живёт в памяти (services/bank.py).
-TODO(тимлид): модели в db/models.py и перенос состояния, когда понадобится.
+В MVP состояние демо намеренно живёт в памяти (services/bank.py); модели БД — на этапе пилота.
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

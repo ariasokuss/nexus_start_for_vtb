@@ -16,6 +16,7 @@ docker compose up --build
 - API и Swagger: http://localhost:8000/docs
 - Распознавание скриншотов в Щите (по желанию, +1 ГБ): `WITH_OCR=1 docker compose up --build`
 - Локальная LLM для ассистента и Щита (по желанию): `docker compose --profile llm up`, затем в `.env` поставить `LLM_PROVIDER=ollama`
+- Российская модель GigaChat вместо on-prem: `LLM_PROVIDER=gigachat` и `GIGACHAT_CREDENTIALS=<ключ авторизации>` в `.env`
 - Прямая ссылка на сторис: `http://localhost:5173/u/artem?story=0`
 
 ### Без Docker
@@ -69,6 +70,8 @@ docs/       PLAN.md — план, TASKS.md — кто что делает, api.m
 
 Открытые задачи помечены в коде как `TODO(тимлид)`, `TODO(Даша)`, `TODO(Маша)`.
 
+- **Что осталось до сдачи и кто что делает: [docs/HANDOFF.md](docs/HANDOFF.md)**
+- Деплой стенда для жюри: [docs/deploy.md](docs/deploy.md)
 - План: [docs/PLAN.md](docs/PLAN.md)
 - Кто что делает по дням: [docs/TASKS.md](docs/TASKS.md)
 - ТЗ на исследование пользователей: [docs/research/TZ_research.md](docs/research/TZ_research.md)

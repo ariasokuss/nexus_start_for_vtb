@@ -36,6 +36,11 @@ def sos_branches() -> list[dict]:
 
 
 @lru_cache
+def report_templates() -> dict:
+    return _read(settings.content_dir / "sos" / "report_templates.json")
+
+
+@lru_cache
 def lesson(lesson_id: str) -> dict:
     return _read(settings.content_dir / "lessons" / f"{lesson_id}.json")
 

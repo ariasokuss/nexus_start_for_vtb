@@ -149,3 +149,19 @@ def test_intercept_screen_is_short_and_offers_call():
     assert len(r["intercept"]["consequences"]) == 2
     assert "16 лет" in r["intercept"]["consequences"][0]
     assert "call_bank" in r["intercept"]["actions"]
+
+
+def test_sos_report_drafts_by_branch():
+    client.post("/api/personas/dima/reset")
+    client.post("/api/payments/topup", json={"persona_id": "dima", "sender": "Неизвестный", "amount": 20000})
+    bank_b = client.post("/api/sos/action", json={"persona_id": "dima", "action": "report_bank", "branch": "B"}).json()
+    assert "меня использовали" in bank_b["draft"] and "Дима" in bank_b["draft"] and "20 000 ₽" in bank_b["draft"]
+    police = client.post("/api/sos/action", json={"persona_id": "dima", "action": "report_police", "branch": "B"}).json()
+    assert police["draft"].startswith("Начальнику отдела полиции")
+    other = client.post("/api/sos/action", json={"persona_id": "dima", "action": "block_contact"}).json()
+    assert "draft" not in other
+
+
+def test_llm_without_provider_returns_none():
+    from app.services import llm
+    assert llm.complete_json("system", "user") is None

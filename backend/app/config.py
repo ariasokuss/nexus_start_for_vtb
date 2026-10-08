@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     llm_provider: str = "none"  # none | ollama | gigachat
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b-instruct"
-    gigachat_credentials: str = ""
+    gigachat_credentials: str = ""  # ключ авторизации из личного кабинета GigaChat API
+    gigachat_scope: str = "GIGACHAT_API_PERS"
+    gigachat_model: str = "GigaChat"
+    gigachat_ca_bundle: str = ""  # путь к сертификату Минцифры, если его нет в системе
 
 
 settings = Settings()
