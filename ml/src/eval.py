@@ -143,6 +143,18 @@ def eval_shield() -> list[str]:
         "Гибрид: модель + признаки схемы (в бэкенде)": hybrid(hold.text, holdout_proba),
     })
 
+    rubert = REPORTS / "rubert.json"
+    if rubert.exists():
+        r = json.loads(rubert.read_text(encoding="utf-8"))
+        out += ["", f"**Эмбеддинги {r['model']}** (считает `train_shield_rubert.py`, нужен torch; кодирование ~{r['encode_ms_per_message_cpu']} мс на сообщение на CPU):", "",
+                "| Модель | Вербовка: precision | Вербовка: recall | Другое мошенн.: F1 | Нормальные: F1 | Accuracy |", "|---|---|---|---|---|---|"]
+        for key, name in (("holdout", "rubert-tiny2 + логрег"), ("holdout_tfidf_plus_rubert", "TF-IDF + rubert-tiny2")):
+            if key in r:
+                m = r[key]
+                out.append(f"| {name} | {m['drop_precision']:.3f} | {m['drop_recall']:.3f} | {m['other_f1']:.3f} | {m['safe_f1']:.3f} | {m['accuracy']:.3f} |")
+        out += ["", "Вывод: один rubert уступает TF-IDF на коротких сообщениях со сленгом и опечатками; комбинация даёт +2 п. accuracy",
+                "(в пределах шума на 220 сообщениях). В бэкенде оставляем TF-IDF — без torch; вернёмся к вопросу после ручного теста."]
+
     files = sorted(DATA.glob("messages_test_manual_*.csv"))
     manual = pd.concat([pd.read_csv(f) for f in files], ignore_index=True) if files else pd.DataFrame()
     manual = manual.dropna(subset=["text", "label"]) if not manual.empty else manual
