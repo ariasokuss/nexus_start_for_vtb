@@ -55,11 +55,23 @@ def predict(features: dict, top: int = 3) -> tuple[float, list[str]]:
     score = to_api_scale(proba, meta["thr_medium"], meta["thr_high"])
 
     shap = model.get_feature_importance(Pool(row, feature_names=FEATURES), type="ShapValues")[0][:-1]
-    reasons = []
+    picked = []
     for i in sorted(range(len(FEATURES)), key=lambda i: -shap[i]):
-        if shap[i] <= 0 or len(reasons) >= top:
+        if shap[i] <= 0 or len(picked) >= top:
             break
-        text = phrase(FEATURES[i], features[FEATURES[i]])
-        if text:
-            reasons.append(text)
-    return round(score, 2), reasons
+        if phrase(FEATURES[i], features[FEATURES[i]]):
+            picked.append(FEATURES[i])
+    return round(score, 2), _reasons(picked, features)
+
+
+def _reasons(picked: list[str], features: dict) -> list[str]:
+    """Фразы для экрана перехвата. «Сколько пришло» и «когда пришло» — одна мысль, поэтому
+    склеиваем их в одну причину (замечание респондента из опроса: пункты дублировали друг друга)."""
+    sum_key, time_key = "stranger_incoming_24h", "minutes_since_stranger_incoming"
+    if sum_key in picked and time_key in picked:
+        amount = phrase(sum_key, features[sum_key]).split(" пришли")[0]
+        minutes = max(features[time_key], 1)
+        merged = f"{amount} пришли от незнакомых отправителей, последний перевод — {minutes:.0f} мин назад"
+        picked = [k for k in picked if k != time_key]
+        return [merged if k == sum_key else phrase(k, features[k]) for k in picked]
+    return [phrase(k, features[k]) for k in picked]
