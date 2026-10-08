@@ -121,3 +121,19 @@ def test_shield_verdicts_on_live_speech():
             assert body["risk"] == "low" and body["red_flags"] == [], text
         else:
             assert body["risk"] == "high" and body["red_flags"], text
+
+
+def test_shield_source_has_no_control_chars_and_squeezes_repeats():
+    # Регресс: при записи файла \1 и \b превращались в невидимые символы, и нормализация молча не работала
+    from pathlib import Path
+
+    from app.services.shield import _norm
+    src = (Path(__file__).resolve().parents[1] / "app" / "services" / "shield.py").read_text(encoding="utf-8")
+    assert not [c for c in src if ord(c) < 32 and c not in "\n\t"]
+    assert _norm("прииииими дааааа") == "приими даа"
+
+
+def test_keyword_baseline_for_eval_is_available():
+    # ml/src/eval.py сравнивает модель с этим бейзлайном в metrics.md
+    from app.services.shield import DROP_PATTERNS, _classify_keywords
+    assert DROP_PATTERNS and _classify_keywords("прими перевод и переведи дальше", ["a", "b"])[0] == "drop_recruitment"
