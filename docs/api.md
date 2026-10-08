@@ -118,3 +118,15 @@
 | GET | `/api/lessons` | Все уроки как сторис (`short` — подпись плитки, `cta` — кнопка в конце), по полю `order` |
 | GET | `/api/progress/{id}` | `{xp, level, done, gained}` |
 | POST | `/api/progress` | `{persona_id, lesson_id \| quest_id \| action}` — XP начисляется один раз; `action: "safe_exit"` даёт +50 |
+
+### Сценарии с окнами банка
+
+В шаге сценария (`content/scenarios/*.json`) необязательное поле `popup` — какое окно показать после переписки:
+`incoming` (необычное зачисление, «Вернуть через банк»), `request_transfer` (просьба перевести), `pressure` / `threat` (давление, угрозы),
+`history` (банк заметил транзит), `lesson` (`title`, `text` — предложение посмотреть сторис), `done` (итог, `text` — что сделал персонаж).
+В `bank_events` можно указать `channel` и `category` для трат (`"channel": "card", "category": "food"`).
+
+| Метод | Путь | Что делает |
+|---|---|---|
+| POST | `/api/shield/check` | `{image_base64}` — скриншот: EasyOCR → проверка; в ответе `recognized_text`. Без EasyOCR — 503 |
+| GET | `/api/quest/{id}` | Квест: `nodes` с `choices`, финалы `ending: good / bad`; XP — `POST /api/progress {quest_id}` |
