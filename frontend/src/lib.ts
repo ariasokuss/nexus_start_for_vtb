@@ -41,4 +41,6 @@ export const AVATAR_GRADIENT: Record<string, string> = {
   artem: 'linear-gradient(135deg, #5b3df5, #3cc3f0)',
   dima: 'linear-gradient(135deg, #ff6b5a, #ff5fa2)',
   katya: 'linear-gradient(135deg, #22b07d, #c8f135)',
+  sonya: 'linear-gradient(135deg, #ff9f43, #ff5fa2)',
+  lev: 'linear-gradient(135deg, #16171d, #5b3df5)',
 }

@@ -6,8 +6,18 @@ export interface Persona {
   id: string
   name: string
   age: number
+  // kids — «Детский банк», start — «Старт», pushkin — есть только «Пушкинская карта» ВТБ
+  segment: 'kids' | 'start' | 'pushkin'
+  pushkin_balance: number | null
   balance: number
   description: string
+}
+
+export interface Goal {
+  id: string
+  title: string
+  target: number
+  saved: number
 }
 
 export interface Transaction {
@@ -62,6 +72,7 @@ export interface DemoStep {
 
 export interface ScenarioPopup {
   type: 'incoming' | 'request_transfer' | 'pressure' | 'history' | 'threat' | 'lesson' | 'done'
+    | 'birthday' | 'bridge' | 'pushkin' | 'goal'
   title?: string
   text?: string
 }

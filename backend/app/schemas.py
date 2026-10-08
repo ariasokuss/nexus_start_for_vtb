@@ -25,6 +25,9 @@ class Persona(BaseModel):
     id: str
     name: str
     age: int
+    # kids — «Детский банк» (6–13), start — раздел «Старт» (14–22), pushkin — есть только «Пушкинская карта» ВТБ
+    segment: Literal["kids", "start", "pushkin"] = "start"
+    pushkin_balance: float | None = None  # остаток по «Пушкинской карте», если она есть
     balance: float
     description: str = ""
 
@@ -224,3 +227,48 @@ class ProgressResponse(BaseModel):
     level: int
     done: list[str] = []
     gained: int = 0
+
+
+# ---------- Цели и копилка ----------
+class Goal(BaseModel):
+    id: str
+    title: str
+    target: float = Field(gt=0)
+    saved: float = 0
+
+
+class GoalCreate(BaseModel):
+    persona_id: str
+    title: str = Field(min_length=1, max_length=40)
+    target: float = Field(gt=0)
+
+
+class GoalDeposit(BaseModel):
+    persona_id: str
+    amount: float = Field(gt=0)
+
+
+class GoalResponse(BaseModel):
+    goal: Goal
+    balance: float
+    message: str
+
+
+# ---------- Мост «Детский банк» → «Старт» и «Пушкинская карта» ----------
+class BridgeRequest(BaseModel):
+    persona_id: str
+    parent_consent: bool
+
+
+class BridgeResponse(BaseModel):
+    persona: Persona
+    carried_goals: list[Goal]
+    carried_xp: int
+    carried_stories: int
+    message: str
+
+
+class PushkinActivateResponse(BaseModel):
+    persona: Persona
+    offers: list[str]
+    message: str

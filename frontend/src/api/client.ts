@@ -1,6 +1,7 @@
 import type {
   AssistantReply,
   DemoState,
+  Goal,
   Lesson,
   LiveRisk,
   OperationResponse,
@@ -71,6 +72,19 @@ export const api = {
   getProgress: (personaId: string) => request<Progress>(`/api/progress/${personaId}`),
   progress: (personaId: string, body: { lesson_id?: string; quest_id?: string; action?: string }) =>
     post<Progress>('/api/progress', { persona_id: personaId, ...body }),
+
+  goals: (personaId: string) => request<Goal[]>(`/api/goals/${personaId}`),
+  createGoal: (personaId: string, title: string, target: number) =>
+    post<Goal>('/api/goals', { persona_id: personaId, title, target }),
+  depositGoal: (personaId: string, goalId: string, amount: number) =>
+    post<{ goal: Goal; balance: number; message: string }>(`/api/goals/${goalId}/deposit`, { persona_id: personaId, amount }),
+  bridge: (personaId: string, parentConsent: boolean) =>
+    post<{ persona: Persona; carried_goals: Goal[]; carried_xp: number; carried_stories: number; message: string }>(
+      '/api/bridge/migrate', { persona_id: personaId, parent_consent: parentConsent },
+    ),
+  pushkinOffers: () => request<string[]>('/api/pushkin/offers'),
+  pushkinActivate: (personaId: string) =>
+    post<{ persona: Persona; offers: string[]; message: string }>(`/api/pushkin/${personaId}/activate`),
 
   assistant: (personaId: string, message: string, history: { role: string; text: string }[]) =>
     post<AssistantReply>('/api/assistant/chat', { persona_id: personaId, message, history }),

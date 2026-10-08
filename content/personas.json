@@ -467,6 +467,13 @@
         "channel": "card",
         "generated": true
       }
+    ],
+    "goals": [
+      {
+        "title": "Кроссовки",
+        "target": 8000,
+        "saved": 1500
+      }
     ]
   },
   {
@@ -1544,6 +1551,283 @@
         "counterparty": "Доставка еды",
         "channel": "card",
         "generated": true
+      }
+    ],
+    "goals": [
+      {
+        "title": "Наушники",
+        "target": 6000,
+        "saved": 2100
+      }
+    ]
+  },
+  {
+    "id": "sonya",
+    "card_age_days": 300,
+    "name": "Соня",
+    "age": 13,
+    "segment": "kids",
+    "balance": 850,
+    "description": "7 класс, пользуется «Детским банком» ВТБ. Через неделю ей 14 — копит на самокат.",
+    "xp": 140,
+    "done": [
+      "lesson:spot_fraud"
+    ],
+    "goals": [
+      {
+        "title": "Самокат",
+        "target": 9000,
+        "saved": 3400
+      }
+    ],
+    "history": [
+      {
+        "days_ago": 28.73,
+        "amount": 200.0,
+        "direction": "out",
+        "counterparty": "Столовая",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 28.38,
+        "amount": 150.0,
+        "direction": "out",
+        "counterparty": "Кофейня у школы",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 26.37,
+        "amount": 490.0,
+        "direction": "in",
+        "counterparty": "Папа",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 25.43,
+        "amount": 380.0,
+        "direction": "out",
+        "counterparty": "Кино",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 22.13,
+        "amount": 730.0,
+        "direction": "in",
+        "counterparty": "Папа",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 19.59,
+        "amount": 200.0,
+        "direction": "out",
+        "counterparty": "Кофейня у школы",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 19.25,
+        "amount": 390.0,
+        "direction": "out",
+        "counterparty": "Кино",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 18.69,
+        "amount": 270.0,
+        "direction": "out",
+        "counterparty": "Кофейня у школы",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 18.14,
+        "amount": 550.0,
+        "direction": "in",
+        "counterparty": "Папа",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 18.01,
+        "amount": 470.0,
+        "direction": "out",
+        "counterparty": "Игровой магазин",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 16.44,
+        "amount": 210.0,
+        "direction": "out",
+        "counterparty": "Игровой магазин",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 14.47,
+        "amount": 630.0,
+        "direction": "in",
+        "counterparty": "Мама",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 13.28,
+        "amount": 110.0,
+        "direction": "out",
+        "counterparty": "Столовая",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 12.3,
+        "amount": 320.0,
+        "direction": "out",
+        "counterparty": "Игровой магазин",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 10.44,
+        "amount": 90.0,
+        "direction": "out",
+        "counterparty": "Столовая",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 10.33,
+        "amount": 700.0,
+        "direction": "in",
+        "counterparty": "Мама",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 6.72,
+        "amount": 250.0,
+        "direction": "out",
+        "counterparty": "Кофейня у школы",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 6.35,
+        "amount": 460.0,
+        "direction": "in",
+        "counterparty": "Папа",
+        "channel": "sbp",
+        "generated": true
+      },
+      {
+        "days_ago": 5.62,
+        "amount": 250.0,
+        "direction": "out",
+        "counterparty": "Столовая",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 5.19,
+        "amount": 130.0,
+        "direction": "out",
+        "counterparty": "Канцтовары",
+        "channel": "card",
+        "generated": true,
+        "category": "other"
+      },
+      {
+        "days_ago": 4.44,
+        "amount": 370.0,
+        "direction": "out",
+        "counterparty": "Кино",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 3.33,
+        "amount": 290.0,
+        "direction": "out",
+        "counterparty": "Кофейня у школы",
+        "channel": "card",
+        "generated": true,
+        "category": "food"
+      },
+      {
+        "days_ago": 2.05,
+        "amount": 700.0,
+        "direction": "in",
+        "counterparty": "Папа",
+        "channel": "sbp",
+        "generated": true
+      }
+    ]
+  },
+  {
+    "id": "lev",
+    "card_age_days": 60,
+    "name": "Лев",
+    "age": 15,
+    "segment": "pushkin",
+    "balance": 0,
+    "pushkin_balance": 2300,
+    "description": "9 класс. В ВТБ у него только «Пушкинская карта» — ходит по ней в кино и театр.",
+    "history": [
+      {
+        "days_ago": 29.21,
+        "amount": 820.0,
+        "direction": "out",
+        "counterparty": "Театр · Пушкинская карта",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 26.81,
+        "amount": 420.0,
+        "direction": "out",
+        "counterparty": "Кинотеатр · Пушкинская карта",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 25.04,
+        "amount": 1070.0,
+        "direction": "out",
+        "counterparty": "Театр · Пушкинская карта",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
+      },
+      {
+        "days_ago": 20.64,
+        "amount": 1420.0,
+        "direction": "out",
+        "counterparty": "Концерт · Пушкинская карта",
+        "channel": "card",
+        "generated": true,
+        "category": "fun"
       }
     ]
   }
