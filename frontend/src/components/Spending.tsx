@@ -54,7 +54,7 @@ export default function Spending({ txs }: { txs: Transaction[] }) {
         <div className="flex flex-1 flex-wrap gap-2">
           {items.length === 0 && <span className="text-muted">Операций пока нет</span>}
           {items.map((x) => (
-            <span key={x.key} className="chip" style={{ background: `color-mix(in srgb, ${x.color} 12%, white)` }}>
+            <span key={x.key} className="chip" style={{ background: `color-mix(in srgb, ${x.color} 12%, var(--color-surface))` }}>
               <span className="size-2 rounded-full" style={{ background: x.color }} />
               {x.label} {rub(x.value)}
             </span>

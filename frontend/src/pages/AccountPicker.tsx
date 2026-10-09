@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Persona, ScenarioInfo } from '../api/types'
 import Icon from '../components/Icon'
+import ComicBook from '../components/comic/ComicBook'
 import Logo from '../components/Logo'
+import ThemeToggle from '../components/ThemeToggle'
 import { AVATAR_GRADIENT, rub } from '../lib'
 
 const TAGS: Record<string, string> = {
@@ -15,19 +17,39 @@ const TAGS: Record<string, string> = {
   lev: '«Пушкинская карта»',
 }
 
-// Сообщения, которые подросток получает после 14 — из сценариев и опроса
-const RECRUITER = ['Подработка без опыта, 3–5 тыс. в день', 'Сдай карту в аренду — 15 000 сразу', 'Придёт 30 тыс., перешли 27, 3 твои']
-
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
-// Главная: проблема → решение → что умеет «Старт» → алгоритм → сценарии
+// Главная: комикс (проблема → «Старт») → почему сейчас → что умеет → алгоритм → сценарии
 export default function AccountPicker() {
   return (
     <div className="min-h-screen">
-      <Hero />
+      <header className="sticky top-0 z-20 border-b border-line bg-page/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3 sm:px-8">
+          <Logo size={34} />
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            <button onClick={() => scrollTo('how')} className="chip hidden hover:bg-line sm:inline-flex">Как это работает</button>
+            <button onClick={() => scrollTo('scenarios')} className="chip bg-brand text-white hover:brightness-110">
+              <Icon name="play" size={14} /> Сценарии
+            </button>
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
       <main className="mx-auto max-w-[1180px] px-4 sm:px-8">
-        <Danger />
-        <Solution />
+        <section className="pb-16 pt-10 sm:pt-14">
+          <div className="mx-auto max-w-[760px] text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">Раздел ВТБ Онлайн для 14–22 лет</p>
+            <h1 className="mt-3 text-[34px] font-extrabold leading-[1.08] tracking-tight sm:text-[52px]">
+              В 14 детский банк заканчивается. Вербовщики — нет.
+            </h1>
+            <p className="mt-4 text-lg leading-relaxed text-muted">Листайте комикс — 8 страниц о том, зачем нужен «Старт».</p>
+          </div>
+          <div className="mt-10">
+            <ComicBook onScenarios={() => scrollTo('scenarios')} />
+          </div>
+        </section>
+        <WhyNow />
         <Features />
         <Algorithm />
         <Scenarios />
@@ -35,100 +57,6 @@ export default function AccountPicker() {
       <footer className="mx-auto max-w-[1180px] px-4 pb-10 pt-6 text-sm text-muted sm:px-8">
         «Старт» — концепт молодёжного раздела для ВТБ Онлайн, команда nexus. Данные в демо синтетические. Это не юридическая консультация.
       </footer>
-    </div>
-  )
-}
-
-// ---------- 1. В 14 детский банк заканчивается ----------
-function Hero() {
-  return (
-    <section className="relative overflow-hidden bg-ink text-white">
-      <div className="pointer-events-none absolute -right-40 -top-40 size-[520px] rounded-full opacity-40 blur-3xl" style={{ background: 'radial-gradient(circle, #5b3df5, transparent 70%)' }} />
-      <div className="relative mx-auto max-w-[1180px] px-4 pb-16 sm:px-8 sm:pb-24">
-        <header className="flex items-center justify-between py-6">
-          <Logo />
-          <button onClick={() => scrollTo('scenarios')} className="chip bg-white/10 text-white hover:bg-white/20">
-            <Icon name="play" size={15} /> Сценарии
-          </button>
-        </header>
-
-        <div className="mt-8 max-w-[820px] sm:mt-14">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-pink">Подросткам 14–22 лет</p>
-          <h1 className="mt-4 text-[40px] font-extrabold leading-[1.04] tracking-tight sm:text-[64px]">
-            В 14 лет детский банк заканчивается. Вербовщики — нет.
-          </h1>
-          <p className="mt-6 max-w-[640px] text-lg leading-relaxed text-white/75">
-            Подросток выходит из детского режима: родительского контроля больше нет, взрослые функции ещё недоступны. Зато уже
-            приходят сообщения про «лёгкий заработок», а через его карту пытаются провести чужие деньги.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button onClick={() => scrollTo('solution')} className="btn-primary">Что такое «Старт»</button>
-            <button onClick={() => scrollTo('scenarios')} className="btn bg-white/10 text-white hover:bg-white/20">
-              <Icon name="play" size={16} /> Посмотреть сценарии
-            </button>
-          </div>
-        </div>
-
-        <AgeLine bridged={false} />
-      </div>
-    </section>
-  )
-}
-
-// Шкала возраста: «Детский банк» обрывается в 14; во втором блоке «Старт» перекрывает обрыв
-function AgeLine({ bridged }: { bridged: boolean }) {
-  return (
-    <div className={`mt-14 ${bridged ? '' : 'sm:mt-20'}`} aria-label={bridged ? 'Детский банк, затем Старт с 14 до 22 лет, затем взрослый банк' : 'Детский банк заканчивается в 14 лет, дальше — пропасть'}>
-      <div className="relative grid grid-cols-[8fr_9fr_3fr] items-end gap-1.5 sm:gap-2">
-        <Segment label="«Детский банк»" sub="6–13 лет" tone={bridged ? 'soft' : 'kids'} />
-        {bridged ? (
-          <div className="relative">
-            <div className="rounded-2xl px-3 py-4 text-white sm:px-5 sm:py-5" style={{ background: 'linear-gradient(135deg, #5b3df5, #ff5fa2)', boxShadow: '0 12px 40px rgb(91 61 245 / 0.35)' }}>
-              <div className="text-[15px] font-extrabold sm:text-lg">«Старт»</div>
-              <div className="text-xs text-white/85 sm:text-sm">14–22 года</div>
-            </div>
-          </div>
-        ) : (
-          <div className="relative h-[92px] sm:h-[100px]">
-            {/* обрыв */}
-            <div className="absolute inset-x-0 bottom-0 h-[3px] border-t-[3px] border-dashed border-white/25" />
-            <div className="absolute bottom-3 left-0 text-xs font-semibold text-pink sm:text-sm">14 лет: здесь всё обрывается</div>
-            {RECRUITER.map((m, i) => (
-              <div
-                key={m}
-                className="animate-rise absolute hidden max-w-[260px] rounded-2xl rounded-bl-md bg-white px-3 py-2 text-[13px] text-ink shadow-lg md:block"
-                style={{ left: `${8 + i * 30}%`, bottom: `${110 + (i % 2) * 58}px`, animationDelay: `${300 + i * 350}ms`, transform: `rotate(${i % 2 ? 2 : -2}deg)` }}
-              >
-                {m}
-              </div>
-            ))}
-          </div>
-        )}
-        <Segment label="Взрослый банк" sub="после 22" tone={bridged ? 'soft' : 'adult'} />
-      </div>
-      {!bridged && (
-        <div className="mt-6 grid gap-2 md:hidden">
-          {RECRUITER.map((m) => (
-            <div key={m} className="w-fit rounded-2xl rounded-bl-md bg-white px-3 py-2 text-[13px] text-ink">{m}</div>
-          ))}
-        </div>
-      )}
-      <div className="mt-3 grid grid-cols-[8fr_9fr_3fr] gap-2 text-xs font-semibold opacity-60">
-        <span>6</span>
-        <span>14</span>
-        <span>22</span>
-      </div>
-    </div>
-  )
-}
-
-function Segment({ label, sub, tone }: { label: string; sub: string; tone: 'kids' | 'adult' | 'soft' }) {
-  const style =
-    tone === 'kids' ? 'bg-sky/20 text-white border border-sky/40' : tone === 'adult' ? 'bg-white/10 text-white/70' : 'bg-white text-ink border border-line'
-  return (
-    <div className={`rounded-2xl px-3 py-4 sm:px-5 sm:py-5 ${style}`}>
-      <div className="text-[13px] font-bold leading-tight sm:text-base">{label}</div>
-      <div className="text-xs opacity-70 sm:text-sm">{sub}</div>
     </div>
   )
 }
@@ -143,69 +71,26 @@ function SectionTitle({ eyebrow, title, text }: { eyebrow: string; title: string
   )
 }
 
-// ---------- 2. Пропасть: что там происходит ----------
-function Danger() {
-  const dangers = [
-    ['users', 'Вербовка в дропы', 'Предлагают «подработку»: принять деньги на карту и переслать дальше. С 16 лет это уголовная статья 187 УК РФ.'],
-    ['chat', 'Мошенники', '«Служба безопасности банка», «мам, я разбил телефон», выигрыши и предоплаты — подросток видит это впервые.'],
-    ['lock', 'Молчаливые блокировки', 'Банк останавливает перевод без объяснений, а честный клиент не понимает, что случилось, и уходит.'],
-  ]
+// ---------- Почему ВТБ и почему сейчас ----------
+function WhyNow() {
   const stats = [
+    ['×4', 'выросла у ВТБ доля выявленных дропов 14–17 лет', 'I кв. 2026 к I кв. 2025, по данным СМИ'],
     ['> 50%', 'людей в базе дропов ЦБ моложе 25 лет', 'Банк России, сент. 2026, по данным СМИ'],
-    ['36%', 'молодых людей получали предложения «подработки» через карту', 'опрос команды, n = 25'],
-    ['24%', 'знают, что ответственность наступает с 16 лет', 'опрос команды, n = 25'],
+    ['24%', 'молодых людей знают, что ответственность наступает с 16 лет', 'опрос команды, n = 25'],
   ]
   return (
-    <section className="py-16 sm:py-24">
-      <SectionTitle eyebrow="Что в пропасти" title="Опасности появляются раньше, чем защита" />
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {dangers.map(([icon, title, text]) => (
-          <div key={title} className="card p-6">
-            <span className="grid size-12 place-items-center rounded-2xl bg-risk-high/10 text-risk-high">
-              <Icon name={icon} />
-            </span>
-            <h3 className="mt-4 text-xl font-bold">{title}</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted">{text}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
-        {stats.map(([n, text, src]) => (
-          <div key={text} className="rounded-[28px] bg-ink p-6 text-white">
-            <div className="text-[44px] font-extrabold leading-none text-pink">{n}</div>
-            <p className="mt-3 text-[15px] leading-relaxed text-white/85">{text}</p>
-            <p className="mt-3 text-xs text-white/50">{src}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-// ---------- 3. Решение ----------
-function Solution() {
-  return (
-    <section id="solution" className="scroll-mt-6 rounded-[36px] bg-white p-6 sm:p-12" style={{ boxShadow: 'var(--shadow-card)' }}>
+    <section className="py-16 sm:py-20">
       <SectionTitle
-        eyebrow="Решение"
-        title="«Старт» — раздел для 14–22 лет в ВТБ Онлайн"
-        text="Мост между детским и взрослым банком. Своя карта и копилка, финграмотность на реальных деньгах и защита, которая срабатывает в момент, когда подростка пытаются использовать."
+        eyebrow="Почему ВТБ и почему сейчас"
+        title="Банк под прицелом вербовщиков — а молодёжи у него всё больше"
+        text="У ВТБ больше 4 млн клиентов 14–25 лет, а с 2026 года он ещё и оператор «Пушкинской карты». Каждый из них — цель для вербовщиков. «Старт» защищает их там, где они уже есть."
       />
-      <div className="text-ink">
-        <AgeLine bridged />
-      </div>
-      <div className="mt-8 grid gap-3 sm:grid-cols-3">
-        {[
-          ['spark', 'Переход в 14 — в одно касание', 'Родитель подтверждает, цели, копилка и опыт переносятся.'],
-          ['shield', 'Защита в момент события', 'Не памятка, а помощь, когда пришли чужие деньги или пишет вербовщик.'],
-          ['piggy', 'Деньги и навыки', 'Копилка, цели, истории про НДФЛ и подписки — по событию, а не уроком.'],
-        ].map(([icon, title, text]) => (
-          <div key={title} className="flex gap-3 rounded-3xl bg-page p-5">
-            <Icon name={icon} className="mt-0.5 shrink-0 text-brand" />
-            <div>
-              <div className="font-bold">{title}</div>
-              <div className="mt-1 text-sm leading-relaxed text-muted">{text}</div>
-            </div>
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        {stats.map(([n, text, src]) => (
+          <div key={text} className="card p-6">
+            <div className="bg-gradient-to-r from-brand to-pink bg-clip-text text-[48px] font-extrabold leading-none text-transparent">{n}</div>
+            <p className="mt-3 text-[16px] font-semibold leading-snug">{text}</p>
+            <p className="mt-3 text-xs text-muted">{src}</p>
           </div>
         ))}
       </div>
@@ -213,7 +98,7 @@ function Solution() {
   )
 }
 
-// ---------- 4. Что умеет «Старт» ----------
+// ---------- Что умеет «Старт» ----------
 function Features() {
   const items = [
     {
@@ -266,25 +151,24 @@ function Features() {
   )
 }
 
-// ---------- 5. Алгоритм ----------
+// ---------- Алгоритм ----------
 function Algorithm() {
   return (
-    <section className="rounded-[36px] bg-ink p-6 text-white sm:p-12">
-      <p className="text-sm font-bold uppercase tracking-[0.14em] text-pink">Как это работает</p>
-      <h2 className="mt-3 max-w-[760px] text-[30px] font-extrabold leading-[1.1] tracking-tight sm:text-[42px]">Два этапа: заметить и остановить</h2>
+    <section id="how" className="scroll-mt-20 py-16 sm:py-20">
+      <SectionTitle eyebrow="Как это работает" title="Два этапа: заметить и остановить" />
       <div className="mt-10 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
-        <div className="rounded-3xl bg-white/[0.06] p-6 ring-1 ring-white/10">
+        <div className="card p-6 sm:p-8">
           <div className="text-sm font-bold text-sky">Этап 1 · Зачисление</div>
           <h3 className="mt-2 text-xl font-bold">Сравниваем с обычным поведением</h3>
-          <p className="mt-3 text-[15px] leading-relaxed text-white/75">
+          <p className="mt-3 text-[15px] leading-relaxed text-muted">
             Банк знает ваш профиль: от кого обычно приходят деньги и сколько. 30 000 ₽ от незнакомца — в 20 раз больше обычного —
             помечаются «под проверкой», и банк предупреждает. Не блокирует: запретить получить деньги нельзя.
           </p>
         </div>
         <div className="hidden place-items-center md:grid">
-          <Icon name="next" className="text-white/40" />
+          <Icon name="next" className="text-muted" />
         </div>
-        <div className="rounded-3xl p-6" style={{ background: 'linear-gradient(135deg, #5b3df5, #ff5fa2)' }}>
+        <div className="rounded-[28px] p-6 text-white sm:p-8" style={{ background: 'linear-gradient(135deg, #5b3df5, #ff5fa2)' }}>
           <div className="text-sm font-bold text-white/85">Этап 2 · Перевод</div>
           <h3 className="mt-2 text-xl font-bold">Ловим транзит</h3>
           <p className="mt-3 text-[15px] leading-relaxed text-white/90">
@@ -295,13 +179,16 @@ function Algorithm() {
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         {[
-          ['Решают модели', 'Опасно или нет, решают измеримые модели. Языковая модель только объясняет; без неё — готовые тексты.'],
-          ['Честно про данные', 'Демо на синтетических данных. В банке модели дообучаются на подтверждённых случаях.'],
-          ['В контуре банка', 'Всё работает внутри банка, данные клиентов наружу не уходят.'],
-        ].map(([title, text]) => (
-          <div key={title} className="rounded-3xl bg-white/[0.06] p-5 ring-1 ring-white/10">
-            <div className="font-bold">{title}</div>
-            <div className="mt-1 text-sm leading-relaxed text-white/70">{text}</div>
+          ['shield', 'Решают модели', 'Опасно или нет, решают измеримые модели. Языковая модель только объясняет; без неё — готовые тексты.'],
+          ['eye', 'Честно про данные', 'Демо на синтетических данных. В банке модели дообучаются на подтверждённых случаях.'],
+          ['lock', 'В контуре банка', 'Всё работает внутри банка, данные клиентов наружу не уходят.'],
+        ].map(([icon, title, text]) => (
+          <div key={title} className="card flex gap-3 p-5">
+            <Icon name={icon} className="mt-0.5 shrink-0 text-brand" />
+            <div>
+              <div className="font-bold">{title}</div>
+              <div className="mt-1 text-sm leading-relaxed text-muted">{text}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -309,7 +196,7 @@ function Algorithm() {
   )
 }
 
-// ---------- 6. Сценарии: вход в кабинет ----------
+// ---------- Сценарии: вход в кабинет ----------
 function Scenarios() {
   const navigate = useNavigate()
   const [personas, setPersonas] = useState<Persona[]>([])
@@ -326,7 +213,7 @@ function Scenarios() {
   }, [])
 
   return (
-    <section id="scenarios" className="scroll-mt-6 py-16 sm:py-24">
+    <section id="scenarios" className="scroll-mt-20 py-16 sm:py-24">
       <SectionTitle
         eyebrow="Попробуйте сами"
         title="Посмотрите сценарии"

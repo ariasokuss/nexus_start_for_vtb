@@ -30,6 +30,7 @@ import { InterceptModal, ShieldModal, SosModal } from '../components/SafetyModal
 import ScenarioPanel from '../components/ScenarioPanel'
 import { Push, type PushData, ScenarioWindow } from '../components/ScenarioPopups'
 import Spending from '../components/Spending'
+import ThemeToggle from '../components/ThemeToggle'
 import { StoriesRow, StoryViewer } from '../components/Stories'
 import { AVATAR_GRADIENT, greeting, rub } from '../lib'
 
@@ -480,7 +481,8 @@ export default function Cabinet() {
             <button className="btn-ghost hidden px-3 py-2.5 text-sm sm:inline-flex" onClick={resetAccount} title="Сбросить аккаунт">
               <Icon name="reset" size={16} />
             </button>
-            <button onClick={() => setModal({ kind: 'profile' })} className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 hover:bg-white" title="Профиль">
+            <ThemeToggle />
+            <button onClick={() => setModal({ kind: 'profile' })} className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 hover:bg-surface" title="Профиль">
               <span className="grid size-9 place-items-center rounded-full font-bold text-white" style={{ background: AVATAR_GRADIENT[persona.id] }}>
                 {persona.name[0]}
               </span>
@@ -625,7 +627,7 @@ export default function Cabinet() {
               onClick={() => setModal({ kind: 'shield', text: lastRecruiterMessage() })}
               className="card flex w-full items-center gap-4 p-5 text-left transition hover:-translate-y-0.5"
             >
-              <span className="grid size-11 place-items-center rounded-2xl bg-ink text-lime">
+              <span className="grid size-11 place-items-center rounded-2xl bg-night text-lime">
                 <Icon name="shield" size={21} />
               </span>
               <span className="flex-1">
@@ -732,7 +734,7 @@ export default function Cabinet() {
       )}
 
       {toast && (
-        <div className="animate-rise fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-ink px-5 py-3 text-[15px] font-medium text-white" style={{ boxShadow: 'var(--shadow-pop)' }}>
+        <div className="animate-rise fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-night px-5 py-3 text-[15px] font-medium text-white" style={{ boxShadow: 'var(--shadow-pop)' }}>
           {toast}
         </div>
       )}

@@ -27,7 +27,7 @@ function GoalRow({ goal }: { goal: Goal }) {
         <span className="font-semibold">{goal.title}</span>
         <span className="text-muted">{rub(goal.saved)} / {rub(goal.target)}</span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface">
         <div className="h-full rounded-full bg-sky transition-all duration-700" style={{ width: `${pct}%` }} />
       </div>
     </div>

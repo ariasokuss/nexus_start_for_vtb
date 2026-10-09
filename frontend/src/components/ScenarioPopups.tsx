@@ -26,7 +26,7 @@ export function Push({ push, onDone }: { push: PushData; onDone: () => void }) {
     <button
       key={push.id}
       onClick={() => { push.onClick?.(); onDone() }}
-      className="animate-drop fixed left-1/2 top-4 z-[60] flex w-[min(420px,calc(100vw-24px))] -translate-x-1/2 items-center gap-3 rounded-[22px] bg-white/95 p-3.5 text-left backdrop-blur"
+      className="animate-drop fixed left-1/2 top-4 z-[60] flex w-[min(420px,calc(100vw-24px))] -translate-x-1/2 items-center gap-3 rounded-[22px] bg-surface/95 p-3.5 text-left backdrop-blur"
       style={{ boxShadow: 'var(--shadow-pop)' }}
     >
       <span className="grid size-11 shrink-0 place-items-center rounded-2xl text-white" style={{ background: tint }}>
@@ -76,7 +76,7 @@ export function ScenarioWindow({ popup, personaName, incoming, live, lastMessage
     return (
       <Modal tone="danger" onClose={actions.close} title={<Title icon="alert" danger>Необычное зачисление</Title>}>
         {incoming && (
-          <div className="rounded-3xl p-5" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, white)' }}>
+          <div className="rounded-3xl p-5" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, var(--color-surface))' }}>
             <div className="text-sm text-muted">Пришло от «{incoming.counterparty}»</div>
             <div className="text-[34px] font-extrabold leading-tight text-risk-low">+{rub(incoming.amount)}</div>
             <div className="mt-1 text-sm font-semibold text-risk-high">Сумма помечена банком — под проверкой</div>

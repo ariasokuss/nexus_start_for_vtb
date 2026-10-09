@@ -31,8 +31,8 @@ function RiskBar({ live }: { live: LiveRisk }) {
     <div>
       <div className="relative h-2.5 overflow-hidden rounded-full bg-page">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(live.score * 100, 4)}%`, background: color }} />
-        <span className="absolute inset-y-0 left-[40%] w-0.5 bg-white" />
-        <span className="absolute inset-y-0 left-[70%] w-0.5 bg-white" />
+        <span className="absolute inset-y-0 left-[40%] w-0.5 bg-surface" />
+        <span className="absolute inset-y-0 left-[70%] w-0.5 bg-surface" />
       </div>
       <div className="relative mt-1.5 h-4 text-xs text-muted">
         <span className="absolute left-0">0</span>
@@ -96,7 +96,7 @@ function BankSeesModal({ live, onClose }: { live: LiveRisk; onClose: () => void 
   return (
     <Modal title="Что видит банк" onClose={onClose} width="max-w-[640px]">
       {/* Итог */}
-      <div className="rounded-3xl p-5" style={{ background: `color-mix(in srgb, ${color} 9%, white)` }}>
+      <div className="rounded-3xl p-5" style={{ background: `color-mix(in srgb, ${color} 9%, var(--color-surface))` }}>
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="text-sm text-muted">Оценка риска</div>
@@ -107,9 +107,9 @@ function BankSeesModal({ live, onClose }: { live: LiveRisk; onClose: () => void 
         <div className="mt-4"><RiskBar live={live} /></div>
         <p className="mt-3 text-[15px] leading-relaxed">{verdict}</p>
         <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-          <span className="rounded-xl bg-white/70 p-2"><b className="text-risk-low">до 0.4</b> — обычные операции</span>
-          <span className="rounded-xl bg-white/70 p-2"><b className="text-risk-medium">0.4–0.7</b> — предупреждение</span>
-          <span className="rounded-xl bg-white/70 p-2"><b className="text-risk-high">от 0.7</b> — перевод останавливается</span>
+          <span className="rounded-xl bg-surface/70 p-2"><b className="text-risk-low">до 0.4</b> — обычные операции</span>
+          <span className="rounded-xl bg-surface/70 p-2"><b className="text-risk-medium">0.4–0.7</b> — предупреждение</span>
+          <span className="rounded-xl bg-surface/70 p-2"><b className="text-risk-high">от 0.7</b> — перевод останавливается</span>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ function BankSeesModal({ live, onClose }: { live: LiveRisk; onClose: () => void 
       {live.signals.length ? (
         <ul className="mt-3 space-y-2">
           {live.signals.map((s) => (
-            <li key={s} className="flex gap-2.5 rounded-2xl p-3 text-[15px] leading-snug" style={{ background: `color-mix(in srgb, ${color} 8%, white)` }}>
+            <li key={s} className="flex gap-2.5 rounded-2xl p-3 text-[15px] leading-snug" style={{ background: `color-mix(in srgb, ${color} 8%, var(--color-surface))` }}>
               <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
               {s}
             </li>

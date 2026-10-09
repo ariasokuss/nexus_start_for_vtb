@@ -20,11 +20,11 @@ export default function Modal({ title, onClose, onBack, children, width = 'max-w
   }, [onClose])
 
   return (
-    <div className="animate-fade fixed inset-0 z-40 flex items-end justify-center bg-ink/40 sm:items-center sm:p-6" onClick={onClose}>
+    <div className="animate-fade fixed inset-0 z-40 flex items-end justify-center bg-night/40 sm:items-center sm:p-6" onClick={onClose}>
       <div
         role="dialog"
         aria-modal
-        className={`animate-rise max-h-[92vh] w-full ${width} overflow-y-auto rounded-t-[32px] bg-white p-6 sm:rounded-[32px] sm:p-8 ${tone === 'danger' ? 'ring-4 ring-risk-high/15' : ''}`}
+        className={`animate-rise max-h-[92vh] w-full ${width} overflow-y-auto rounded-t-[32px] bg-surface p-6 sm:rounded-[32px] sm:p-8 ${tone === 'danger' ? 'ring-4 ring-risk-high/15' : ''}`}
         style={{ boxShadow: 'var(--shadow-pop)' }}
         onClick={(e) => e.stopPropagation()}
       >

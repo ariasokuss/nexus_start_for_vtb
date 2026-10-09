@@ -83,7 +83,7 @@ export default function ProfileModal({ persona, progress, stories, onClose, onOp
                 <div className="text-xs text-muted">{s.title}</div>
               </div>
               {seen ? (
-                <span className="chip bg-risk-low/10 text-[13px] text-[#137a55]"><Icon name="check" size={14} /> +{s.xp} XP</span>
+                <span className="chip bg-risk-low/10 text-[13px] text-ok"><Icon name="check" size={14} /> +{s.xp} XP</span>
               ) : (
                 <span className="chip bg-page text-[13px] text-muted">+{s.xp} XP</span>
               )}
@@ -91,13 +91,13 @@ export default function ProfileModal({ persona, progress, stories, onClose, onOp
           )
         })}
         <button onClick={onOpenQuest} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-page">
-          <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-ink text-lime"><Icon name="chat" size={22} /></div>
+          <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-night text-lime"><Icon name="chat" size={22} /></div>
           <div className="flex-1">
             <div className="font-semibold">Квест «А что было бы, если…»</div>
             <div className="text-xs text-muted">Переписка с вербовщиком, четыре финала</div>
           </div>
           {done.has('quest:drop_job') ? (
-            <span className="chip bg-risk-low/10 text-[13px] text-[#137a55]"><Icon name="check" size={14} /> +50 XP</span>
+            <span className="chip bg-risk-low/10 text-[13px] text-ok"><Icon name="check" size={14} /> +50 XP</span>
           ) : (
             <span className="chip bg-page text-[13px] text-muted">+50 XP</span>
           )}
@@ -143,7 +143,7 @@ function Toggle({ on, onChange, title, text }: { on: boolean; onChange: (v: bool
         onClick={() => onChange(!on)}
         className={`relative h-7 w-12 shrink-0 rounded-full transition ${on ? 'bg-brand' : 'bg-line'}`}
       >
-        <span className={`absolute top-1 size-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
+        <span className={`absolute top-1 size-5 rounded-full bg-surface shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
       </button>
     </label>
   )

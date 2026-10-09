@@ -114,7 +114,7 @@ export default function Assistant({ personaId, personaName, nudge, ask, onAction
     <div className={`fixed bottom-5 right-5 z-30 flex flex-col items-end gap-3 sm:bottom-7 ${shifted ? 'sm:right-[448px]' : 'sm:right-7'}`}>
       {open && (
         <div
-          className="animate-rise flex h-[min(620px,calc(100vh-120px))] w-[min(400px,calc(100vw-32px))] flex-col overflow-hidden rounded-[28px] bg-white"
+          className="animate-rise flex h-[min(620px,calc(100vh-120px))] w-[min(400px,calc(100vw-32px))] flex-col overflow-hidden rounded-[28px] bg-surface"
           style={{ boxShadow: 'var(--shadow-pop)' }}
         >
           <div className="flex items-center gap-3 border-b border-line px-5 py-4">
@@ -133,7 +133,7 @@ export default function Assistant({ personaId, personaName, nudge, ask, onAction
               <div key={i} className={`animate-rise flex ${m.role === 'user' ? 'justify-end' : ''}`}>
                 <div
                   className={`max-w-[85%] whitespace-pre-line rounded-[20px] px-4 py-2.5 text-[14.5px] leading-relaxed ${
-                    m.role === 'user' ? 'rounded-br-md bg-brand text-white' : 'rounded-bl-md bg-white'
+                    m.role === 'user' ? 'rounded-br-md bg-brand text-white' : 'rounded-bl-md bg-surface'
                   }`}
                   style={m.role === 'bot' ? { boxShadow: 'var(--shadow-card)' } : undefined}
                 >
@@ -142,7 +142,7 @@ export default function Assistant({ personaId, personaName, nudge, ask, onAction
               </div>
             ))}
             {typing && (
-              <div className="flex gap-1 rounded-[20px] bg-white px-4 py-3" style={{ width: 64, boxShadow: 'var(--shadow-card)' }}>
+              <div className="flex gap-1 rounded-[20px] bg-surface px-4 py-3" style={{ width: 64, boxShadow: 'var(--shadow-card)' }}>
                 {[0, 1, 2].map((k) => (
                   <span key={k} className="size-2 animate-bounce rounded-full bg-muted/50" style={{ animationDelay: `${k * 120}ms` }} />
                 ))}
@@ -169,14 +169,14 @@ export default function Assistant({ personaId, personaName, nudge, ask, onAction
       )}
 
       {peek && !open && (
-        <button onClick={toggle} className="animate-rise max-w-[300px] rounded-[20px] rounded-br-md bg-white p-4 text-left text-[14px] leading-snug" style={{ boxShadow: 'var(--shadow-pop)' }}>
+        <button onClick={toggle} className="animate-rise max-w-[300px] rounded-[20px] rounded-br-md bg-surface p-4 text-left text-[14px] leading-snug" style={{ boxShadow: 'var(--shadow-pop)' }}>
           <div className="mb-1 text-xs font-bold text-brand">Бит</div>
           {peek.length > 150 ? peek.slice(0, 150) + '…' : peek}
         </button>
       )}
 
       <button onClick={toggle} className="relative transition hover:scale-105" aria-label="Открыть помощника">
-        <span className="block rounded-[22px] bg-white p-1.5" style={{ boxShadow: 'var(--shadow-pop)' }}>
+        <span className="block rounded-[22px] bg-surface p-1.5" style={{ boxShadow: 'var(--shadow-pop)' }}>
           <Mascot size={52} mood={alert ? 'alert' : 'calm'} />
         </span>
         {alert && <span className="absolute -right-0.5 -top-0.5 size-4 animate-ping rounded-full bg-coral" />}

@@ -80,7 +80,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
       </ul>
 
       {it.consequences.length > 0 && (
-        <div className="mt-5 rounded-2xl bg-risk-high/8 p-4" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, white)' }}>
+        <div className="mt-5 rounded-2xl bg-risk-high/8 p-4" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, var(--color-surface))' }}>
           <div className="text-sm font-bold">Чем это грозит</div>
           <ul className="mt-2 space-y-1 text-[14px]">
             {it.consequences.map((c) => <li key={c}>— {c}</li>)}
@@ -271,12 +271,12 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
                 )}
                 {s.legal && legal[s.legal] && <LegalNote items={[legal[s.legal]]} />}
                 {errors[i] && !done[i] && <p className="mt-2 text-sm font-medium text-risk-high">{errors[i]}</p>}
-                {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-[#137a55]">{done[i]}</p>}
+                {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-ok">{done[i]}</p>}
                 {drafts[i] && (
                   <details className="animate-fade mt-2 rounded-2xl bg-page p-3" open>
                     <summary className="cursor-pointer text-sm font-semibold">Черновик — проверьте и отправьте</summary>
                     <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-snug text-ink/80">{drafts[i]}</pre>
-                    <button className="chip mt-2 bg-white text-ink hover:bg-line" onClick={() => navigator.clipboard?.writeText(drafts[i])}>
+                    <button className="chip mt-2 bg-surface text-ink hover:bg-line" onClick={() => navigator.clipboard?.writeText(drafts[i])}>
                       Скопировать
                     </button>
                   </details>
@@ -291,7 +291,7 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
         <div className="animate-rise mt-5 rounded-3xl p-5 text-white" style={{ background: 'linear-gradient(135deg, #5b3df5, #ff5fa2)' }}>
           <div className="text-lg font-bold">Вы всё сделали правильно</div>
           <p className="mt-1 text-sm text-white/85">Банк получил обращение. Дальше с вами свяжется специалист.</p>
-          <button className="btn mt-4 bg-white text-ink" onClick={() => { onComplete(); onClose() }}>
+          <button className="btn mt-4 bg-surface text-ink" onClick={() => { onComplete(); onClose() }}>
             Готово · +50 XP
           </button>
         </div>
@@ -377,7 +377,7 @@ export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
 
       {result && (
         <div className="animate-rise mt-5 space-y-4">
-          <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: `color-mix(in srgb, ${RISK_COLOR[result.risk]} 10%, white)` }}>
+          <div className="flex items-center gap-3 rounded-2xl p-4" style={{ background: `color-mix(in srgb, ${RISK_COLOR[result.risk]} 10%, var(--color-surface))` }}>
             <span className="grid size-10 place-items-center rounded-xl text-white" style={{ background: RISK_COLOR[result.risk] }}>
               <Icon name={result.risk === 'low' ? 'check' : 'alert'} size={20} />
             </span>

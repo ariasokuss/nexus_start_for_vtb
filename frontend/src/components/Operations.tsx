@@ -35,7 +35,7 @@ function Row({ t }: { t: Transaction }) {
     <li className="animate-rise flex items-center gap-4 py-3.5">
       <div
         className="grid size-11 shrink-0 place-items-center rounded-2xl"
-        style={{ background: `color-mix(in srgb, ${tint} 12%, white)`, color: tint }}
+        style={{ background: `color-mix(in srgb, ${tint} 12%, var(--color-surface))`, color: tint }}
       >
         <Icon name={suspicious ? 'alert' : t.direction === 'in' ? 'plus' : ICON[cat]} size={20} />
       </div>

@@ -173,7 +173,7 @@ export function StoryViewer({ stories, start, done, onClose, onFinish, onAction 
             <>
               <h2 className="text-[34px] font-extrabold leading-[1.05] tracking-tight sm:text-[38px]">{story.cards[ci].title}</h2>
               <p className="mt-3 text-[17px] leading-relaxed text-white/85">{story.cards[ci].text}</p>
-              <button onClick={next} className="btn mt-6 w-full bg-white text-ink hover:bg-white/90">Дальше</button>
+              <button onClick={next} className="btn mt-6 w-full bg-white text-[#16171d] hover:bg-white/90">Дальше</button>
             </>
           )}
 
