@@ -21,6 +21,21 @@ python src/eval.py                               # → reports/metrics.md
 python src/gen_transactions.py --seed-personas   # история демо-персонажей в content/personas.json
 ```
 
+**Дополнительно (тяжёлые зависимости, ставятся отдельно):**
+```bash
+# rubert-tiny2 для Щита — сравнение с TF-IDF, результат в reports/rubert.json → metrics.md
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install sentence-transformers
+python src/train_shield_rubert.py
+
+# сравнение LLM для объяснений Щита → reports/llm_comparison.md, ответы для ручной оценки — reports/llm_answers.csv
+ollama pull qwen2.5:7b-instruct && ollama pull qwen2.5:3b-instruct
+python src/eval_llm.py --ollama qwen2.5:7b-instruct qwen2.5:3b-instruct
+python src/eval_llm.py --gigachat     # нужен ключ: set GIGACHAT_CREDENTIALS=...
+python src/eval_llm.py --summarize    # после ручной оценки понятности
+```
+Если на диске C мало места — ставить на другой диск: модели Ollama через переменную `OLLAMA_MODELS`, кэш HuggingFace через `HF_HOME`.
+
 **Где что лежит**
 - Признаки и токенизация — `backend/app/ml/features.py`, `backend/app/ml/text.py`: один код для обучения и бэкенда.
 - Готовые модели — `backend/app/ml/models/` (коммитим, они маленькие). Бэкенд подхватывает их сам;

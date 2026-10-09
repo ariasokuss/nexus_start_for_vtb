@@ -4,6 +4,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type {
   DemoState,
+  Goal,
   InterceptAction,
   Lesson,
   LiveRisk,
@@ -19,6 +20,7 @@ import type {
 import { PayModal, TopUpModal, TransferModal } from '../components/ActionModals'
 import Assistant, { type Ask, type Nudge } from '../components/Assistant'
 import BankSees from '../components/BankSees'
+import { BirthdayWindow, BridgeWindow, GoalsModal, GoalWindow, PushkinWindow } from '../components/ChannelWindows'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import Operations from '../components/Operations'
@@ -40,18 +42,20 @@ type ModalState =
   | { kind: 'shield'; text?: string }
   | { kind: 'profile' }
   | { kind: 'quest' }
+  | { kind: 'goals' }
   | null
 
 // Что сценарий покажет, как только экран освободится (закроются окна и сторис)
 // step — номер шага: если сценарий ушёл дальше, устаревшее окно не показываем
 type Pending = { step: number } & ({ kind: 'popup'; popup: ScenarioPopup } | { kind: 'sos'; branch: SosBranch['id'] })
 
-const PERSONA_IDS = ['artem', 'dima', 'katya']
+const PERSONA_IDS = ['artem', 'dima', 'katya', 'sonya', 'lev']
 
 export default function Cabinet() {
   const { personaId = '' } = useParams()
   const [persona, setPersona] = useState<Persona | null>(null)
   const [txs, setTxs] = useState<Transaction[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
   const [live, setLive] = useState<LiveRisk | null>(null)
   const [modal, setModal] = useState<ModalState>(null)
   const [scenario, setScenario] = useState<DemoState | null>(null)
@@ -81,13 +85,15 @@ export default function Cabinet() {
   }
 
   const refresh = useCallback(async () => {
-    const [personas, t, l, pr] = await Promise.all([
+    const [personas, t, l, pr, g] = await Promise.all([
       api.personas(),
       api.transactions(personaId),
       api.liveRisk(personaId),
       api.getProgress(personaId).catch(() => ({ xp: 0, level: 1, done: [], gained: 0 })),
+      api.goals(personaId).catch(() => [] as Goal[]),
     ])
     setProgress(pr)
+    setGoals(g)
     setPersona(personas.find((p) => p.id === personaId) ?? null)
     setTxs(t)
     setLive(l)
@@ -180,6 +186,10 @@ export default function Cabinet() {
       notify('Перевод отменён')
     } else if (action === 'offered_job') {
       setModal({ kind: 'sos', branch: 'A' })
+    } else if (action === 'call_bank') {
+      // 36% в опросе предпочли бы звонок банка. В реальном приложении — звонок в поддержку с контекстом перехвата.
+      setModal(null)
+      notify('Перевод не отправлен. Соединяем с банком — в демо звонок не совершается')
     } else if (action === 'check_message') {
       setModal({ kind: 'shield', text: lastRecruiterMessage() })
     } else {
@@ -235,6 +245,9 @@ export default function Cabinet() {
     if (expect.action === 'transfer') setWaiting('Откройте перевод — посмотрите, что сделает банк')
     else if (expect.action === 'sos') setWaiting('Пройдите шаги «Безопасного выхода»')
     else if (expect.action === 'event') setWaiting('Посмотрите историю до конца')
+    else if (expect.action === 'bridge') setWaiting('Перейдите в «Старт» — мама подтвердит в своём приложении')
+    else if (expect.action === 'pushkin') setWaiting('Откройте карту «Старт» из витрины')
+    else if (expect.action === 'goal') setWaiting('Отложите деньги в копилку')
   }
 
   // Переписка шага показана → уведомление банка → окно → ждём решения или идём дальше сами
@@ -356,6 +369,50 @@ export default function Cabinet() {
     close: closePopup,
   }
 
+  // ---------- Каналы роста: мост, «Пушкинская карта», копилка ----------
+  const stepExpects = (action: string) => scenarioOn.current && scenario?.step.expect?.action === action
+
+  const migrateBridge = async () => {
+    const r = await api.bridge(personaId, true)
+    setPopup(null)
+    notify(r.message)
+    await refresh()
+    if (stepExpects('bridge')) await advance()
+  }
+
+  const activatePushkin = async () => {
+    const r = await api.pushkinActivate(personaId)
+    setPopup(null)
+    notify(r.message)
+    await refresh()
+    if (stepExpects('pushkin')) await advance()
+  }
+
+  const goalPlan = () => {
+    const e = scenario?.step.expect
+    const title = e?.action === 'goal' ? String(e.goal) : goals[0]?.title ?? 'Моя цель'
+    return {
+      title,
+      target: e?.action === 'goal' ? Number(e.target) : goals[0]?.target ?? 5000,
+      amount: e?.action === 'goal' ? Number(e.amount) : 500,
+      goal: goals.find((g) => g.title === title) ?? null,
+    }
+  }
+
+  const depositToGoal = async () => {
+    const plan = goalPlan()
+    try {
+      const goal = plan.goal ?? (await api.createGoal(personaId, plan.title, plan.target))
+      const r = await api.depositGoal(personaId, goal.id, plan.amount)
+      setPopup(null)
+      notify(r.message)
+      await refresh()
+      if (stepExpects('goal')) await advance()
+    } catch (e) {
+      notify((e as Error).message)
+    }
+  }
+
   const onAssistantAction = (action: string) => {
     if (action === 'open_sos') setModal({ kind: 'sos' })
     if (action === 'open_shield') setModal({ kind: 'shield', text: lastRecruiterMessage() })
@@ -387,6 +444,10 @@ export default function Cabinet() {
     { icon: 'bag', title: 'Оплатить', sub: 'Одежда, еда, кино, подписки', onClick: () => setModal({ kind: 'pay' }) },
     { icon: 'lifebuoy', title: 'Безопасный выход', sub: 'Если что-то пошло не так', onClick: () => setModal({ kind: 'sos' }), accent: true },
   ]
+  const cardLabel =
+    persona.segment === 'kids' ? '«Детский банк» · карта к счёту мамы' : persona.segment === 'pushkin' ? '«Пушкинская карта»' : 'Карта «Старт» · •• 4821'
+  const cardAmount = persona.segment === 'pushkin' ? persona.pushkin_balance ?? 0 : persona.balance
+  const mainGoal = goals[0]
 
   return (
     <div className={`min-h-screen transition-[padding] ${scenario ? 'sm:pr-[420px]' : ''}`}>
@@ -437,8 +498,9 @@ export default function Cabinet() {
               <div className="absolute -right-10 -top-12 size-44 rounded-full bg-white/10" />
               <div className="absolute -bottom-16 right-10 size-36 rounded-full bg-lime/20" />
               <div className="relative">
-                <div className="text-sm text-white/75">Карта «Старт» · •• 4821</div>
-                <div className="mt-2 text-[38px] font-extrabold leading-none tracking-tight">{rub(persona.balance)}</div>
+                <div className="text-sm text-white/75">{cardLabel}</div>
+                <div className="mt-2 text-[38px] font-extrabold leading-none tracking-tight">{rub(cardAmount)}</div>
+                {persona.segment === 'pushkin' && <div className="mt-1 text-sm text-white/75">на театр, кино и концерты</div>}
                 {(suspicious > 0 || frozen > 0) && (
                   <div className="mt-4 space-y-1.5 text-sm">
                     {suspicious > 0 && (
@@ -474,20 +536,51 @@ export default function Cabinet() {
               </div>
             </button>
 
-            <div className="card flex items-center gap-4 p-5">
+            {persona.segment !== 'start' && (
+              <button
+                onClick={() =>
+                  setPopup(
+                    persona.segment === 'kids'
+                      ? { type: 'bridge', title: 'Переход в «Старт»', text: 'Тебе исполнилось 14? Перейди в раздел для 14–22 лет — цели, копилка и опыт сохранятся.' }
+                      : { type: 'pushkin', title: '«Старт» для держателей «Пушкинской карты»', text: 'Своя карта, копилка, «Молодёжь Плюс» и защита от мошенников — в одном разделе.' },
+                  )
+                }
+                className="card flex w-full items-center gap-4 p-5 text-left ring-2 ring-brand/30 transition hover:-translate-y-0.5"
+              >
+                <span className="grid size-12 place-items-center rounded-2xl bg-brand text-white">
+                  <Icon name="spark" size={22} />
+                </span>
+                <span className="flex-1">
+                  <span className="block font-bold">{persona.segment === 'kids' ? 'Скоро 14 — переход в «Старт»' : 'Открыть карту «Старт»'}</span>
+                  <span className="block text-sm text-muted">{persona.segment === 'kids' ? 'Без новой заявки, всё сохранится' : 'Бесплатно, за минуту'}</span>
+                </span>
+                <Icon name="chevron" className="text-muted" />
+              </button>
+            )}
+
+            <button onClick={() => setModal({ kind: 'goals' })} className="card flex w-full items-center gap-4 p-5 text-left transition hover:-translate-y-0.5">
               <span className="grid size-12 place-items-center rounded-2xl bg-sky/15 text-sky">
                 <Icon name="piggy" size={22} />
               </span>
               <div className="flex-1">
-                <div className="flex justify-between text-[15px]">
-                  <span className="font-bold">Копилка: наушники</span>
-                  <span className="text-muted">2 100 / 6 000 ₽</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-page">
-                  <div className="h-full w-[35%] rounded-full bg-sky" />
-                </div>
+                {mainGoal ? (
+                  <>
+                    <div className="flex justify-between text-[15px]">
+                      <span className="font-bold">Копилка: {mainGoal.title}</span>
+                      <span className="text-muted">{rub(mainGoal.saved)} / {rub(mainGoal.target)}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-page">
+                      <div className="h-full rounded-full bg-sky transition-all duration-700" style={{ width: `${Math.min(100, (mainGoal.saved / mainGoal.target) * 100)}%` }} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-bold">Копилка</div>
+                    <div className="text-sm text-muted">Поставьте первую цель</div>
+                  </>
+                )}
               </div>
-            </div>
+            </button>
 
             <BankSees live={live} />
           </div>
@@ -588,7 +681,18 @@ export default function Cabinet() {
         />
       )}
       {modal?.kind === 'quest' && quest && <QuestModal quest={quest} onClose={() => setModal(null)} onFinish={finishQuest} />}
-      {popup && (
+      {modal?.kind === 'goals' && (
+        <GoalsModal personaId={personaId} goals={goals} onChanged={refresh} onClose={() => setModal(null)} notify={notify} />
+      )}
+      {popup?.type === 'birthday' && <BirthdayWindow popup={popup} onClose={closePopup} />}
+      {popup?.type === 'bridge' && (
+        <BridgeWindow popup={popup} goals={goals} xp={progress.xp} onMigrate={migrateBridge} onClose={closePopup} />
+      )}
+      {popup?.type === 'pushkin' && <PushkinWindow popup={popup} onActivate={activatePushkin} onClose={closePopup} />}
+      {popup?.type === 'goal' && (
+        <GoalWindow popup={popup} goal={goalPlan().goal} amount={goalPlan().amount} onDeposit={depositToGoal} onClose={closePopup} />
+      )}
+      {popup && !['birthday', 'bridge', 'pushkin', 'goal'].includes(popup.type) && (
         <ScenarioWindow
           popup={popup}
           personaName={persona.name}

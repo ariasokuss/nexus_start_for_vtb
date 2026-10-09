@@ -62,7 +62,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
       </div>
       <p className="mt-4 text-[16px] leading-relaxed">{it.text}</p>
 
-      <div className="mt-5 text-sm font-bold uppercase tracking-wide text-muted">Почему мы так решили</div>
+      <div className="mt-5 text-sm font-bold uppercase tracking-wide text-muted">Почему</div>
       <ul className="mt-2 space-y-1.5">
         {result.risk.reasons.map((r) => (
           <li key={r} className="flex gap-2.5 text-[15px]">
@@ -74,7 +74,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
 
       {it.consequences.length > 0 && (
         <div className="mt-5 rounded-2xl bg-risk-high/8 p-4" style={{ background: 'color-mix(in srgb, var(--color-risk-high) 8%, white)' }}>
-          <div className="text-sm font-bold">Чем это грозит владельцу карты</div>
+          <div className="text-sm font-bold">Чем это грозит</div>
           <ul className="mt-2 space-y-1 text-[14px]">
             {it.consequences.map((c) => <li key={c}>— {c}</li>)}
           </ul>
@@ -86,6 +86,9 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
         <button className="btn-primary" onClick={() => onAction('cancel')}>Отменить перевод</button>
         <button className="btn-ghost" onClick={() => onAction('offered_job')}>
           <Icon name="lifebuoy" size={18} /> Мне предложили подработку
+        </button>
+        <button className="btn-ghost" onClick={() => onAction('call_bank')}>
+          <Icon name="phone" size={18} /> Позвонить в банк
         </button>
         <button className="btn-ghost" onClick={() => onAction('check_message')}>
           <Icon name="shield" size={18} /> Проверить сообщение
@@ -123,6 +126,7 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
   const [branches, setBranches] = useState<SosBranch[]>([])
   const [branchId, setBranchId] = useState<SosBranch['id'] | null>(initialBranch ?? null)
   const [done, setDone] = useState<Record<number, string>>({})
+  const [drafts, setDrafts] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState<number | null>(null)
 
   useEffect(() => {
@@ -148,7 +152,9 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
         await api.pauseOutgoing(persona.id)
         text = 'Исходящие переводы на паузе 24 часа'
       } else {
-        text = (await api.sosAction(persona.id, action)).result
+        const r = await api.sosAction(persona.id, action, branchId ?? undefined)
+        text = r.result
+        if (r.draft) setDrafts((d) => ({ ...d, [i]: r.draft! }))
       }
       setDone((d) => ({ ...d, [i]: text }))
       onChanged()
@@ -196,6 +202,15 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
                   </button>
                 )}
                 {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-[#137a55]">{done[i]}</p>}
+                {drafts[i] && (
+                  <details className="animate-fade mt-2 rounded-2xl bg-page p-3" open>
+                    <summary className="cursor-pointer text-sm font-semibold">Черновик — проверьте и отправьте</summary>
+                    <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-snug text-ink/80">{drafts[i]}</pre>
+                    <button className="chip mt-2 bg-white text-ink hover:bg-line" onClick={() => navigator.clipboard?.writeText(drafts[i])}>
+                      Скопировать
+                    </button>
+                  </details>
+                )}
               </div>
             </div>
           </li>

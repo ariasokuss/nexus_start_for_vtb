@@ -100,6 +100,22 @@ def keyword_baseline(texts) -> list[str]:
     return preds
 
 
+def hybrid(texts, proba_fn=None) -> list[str]:
+    """Гибрид из бэкенда (services/shield.classify): вероятности модели + баллы за признаки схемы.
+    proba_fn подменяет модель — чтобы на отложенных шаблонах гибрид не опирался на модель, видевшую их."""
+    sys.path.insert(0, str(ROOT.parent / "backend"))
+    from app.ml import shield_model
+    from app.services import shield
+    original = shield_model.predict_proba
+    if proba_fn:
+        shield_model.predict_proba = proba_fn
+    try:
+        schemes = [shield.classify(str(t))[0] for t in texts]
+    finally:
+        shield_model.predict_proba = original
+    return [s if s in ("drop_recruitment", "safe") else "other_fraud" for s in schemes]
+
+
 def shield_table(y, preds: dict[str, list[str]]) -> list[str]:
     lines = ["| Модель | Вербовка: precision | Вербовка: recall | Другое мошенн.: F1 | Нормальные: F1 | Accuracy |", "|---|---|---|---|---|---|"]
     for name, pred in preds.items():
@@ -120,10 +136,24 @@ def eval_shield() -> list[str]:
         f"### Синтетика, отложенные шаблоны ({len(hold)} сообщений)", "",
         "Модель не видела эти шаблоны при обучении — проверяем перенос на новые формулировки.", "",
     ]
+    holdout_proba = lambda t: dict(zip(clf.classes_, clf.predict_proba(vec.transform([t]))[0]))  # noqa: E731
     out += shield_table(hold.label.tolist(), {
         "Ключевые слова (бейзлайн)": keyword_baseline(hold.text),
         "TF-IDF + логрег": clf.predict(vec.transform(hold.text)).tolist(),
+        "Гибрид: модель + признаки схемы (в бэкенде)": hybrid(hold.text, holdout_proba),
     })
+
+    rubert = REPORTS / "rubert.json"
+    if rubert.exists():
+        r = json.loads(rubert.read_text(encoding="utf-8"))
+        out += ["", f"**Эмбеддинги {r['model']}** (считает `train_shield_rubert.py`, нужен torch; кодирование ~{r['encode_ms_per_message_cpu']} мс на сообщение на CPU):", "",
+                "| Модель | Вербовка: precision | Вербовка: recall | Другое мошенн.: F1 | Нормальные: F1 | Accuracy |", "|---|---|---|---|---|---|"]
+        for key, name in (("holdout", "rubert-tiny2 + логрег"), ("holdout_tfidf_plus_rubert", "TF-IDF + rubert-tiny2")):
+            if key in r:
+                m = r[key]
+                out.append(f"| {name} | {m['drop_precision']:.3f} | {m['drop_recall']:.3f} | {m['other_f1']:.3f} | {m['safe_f1']:.3f} | {m['accuracy']:.3f} |")
+        out += ["", "Вывод: один rubert уступает TF-IDF на коротких сообщениях со сленгом и опечатками; комбинация даёт +2 п. accuracy",
+                "(в пределах шума на 220 сообщениях). В бэкенде оставляем TF-IDF — без torch; вернёмся к вопросу после ручного теста."]
 
     files = sorted(DATA.glob("messages_test_manual_*.csv"))
     manual = pd.concat([pd.read_csv(f) for f in files], ignore_index=True) if files else pd.DataFrame()
@@ -140,6 +170,7 @@ def eval_shield() -> list[str]:
         out += shield_table(manual.label.tolist(), {
             "Ключевые слова (бейзлайн)": keyword_baseline(manual.text),
             "TF-IDF + логрег (финальная модель)": final,
+            "Гибрид: модель + признаки схемы (в бэкенде)": hybrid(manual.text),
         })
     out.append("")
     return out

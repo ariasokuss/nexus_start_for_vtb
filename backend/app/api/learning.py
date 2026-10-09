@@ -62,7 +62,7 @@ def quest(quest_id: str):
         raise HTTPException(404, "Нет такого квеста")
 
 
-ACTION_XP = {"safe_exit": 50}
+ACTION_XP = {"safe_exit": 50, "first_goal_deposit": 20, "bridge": 30, "pushkin_start": 30}
 
 
 def _progress(account, gained: int = 0) -> ProgressResponse:

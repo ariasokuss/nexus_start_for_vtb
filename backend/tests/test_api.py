@@ -137,3 +137,31 @@ def test_keyword_baseline_for_eval_is_available():
     # ml/src/eval.py сравнивает модель с этим бейзлайном в metrics.md
     from app.services.shield import DROP_PATTERNS, _classify_keywords
     assert DROP_PATTERNS and _classify_keywords("прими перевод и переведи дальше", ["a", "b"])[0] == "drop_recruitment"
+
+
+def test_intercept_screen_is_short_and_offers_call():
+    # Итоги опроса: экран перегружен текстом, 36% хотят звонок банка, возраст ответственности знают 24%
+    client.post("/api/personas/artem/reset")
+    client.post("/api/payments/topup", json={"persona_id": "artem", "sender": "Неизвестный", "amount": 30000})
+    r = client.post("/api/payments/transfer", json={"persona_id": "artem", "to": "+79990001234", "amount": 27000}).json()
+    assert r["status"] == "intercepted"
+    assert len(r["risk"]["reasons"]) <= 2
+    assert len(r["intercept"]["consequences"]) == 2
+    assert "16 лет" in r["intercept"]["consequences"][0]
+    assert "call_bank" in r["intercept"]["actions"]
+
+
+def test_sos_report_drafts_by_branch():
+    client.post("/api/personas/dima/reset")
+    client.post("/api/payments/topup", json={"persona_id": "dima", "sender": "Неизвестный", "amount": 20000})
+    bank_b = client.post("/api/sos/action", json={"persona_id": "dima", "action": "report_bank", "branch": "B"}).json()
+    assert "меня использовали" in bank_b["draft"] and "Дима" in bank_b["draft"] and "20 000 ₽" in bank_b["draft"]
+    police = client.post("/api/sos/action", json={"persona_id": "dima", "action": "report_police", "branch": "B"}).json()
+    assert police["draft"].startswith("Начальнику отдела полиции")
+    other = client.post("/api/sos/action", json={"persona_id": "dima", "action": "block_contact"}).json()
+    assert "draft" not in other
+
+
+def test_llm_without_provider_returns_none():
+    from app.services import llm
+    assert llm.complete_json("system", "user") is None

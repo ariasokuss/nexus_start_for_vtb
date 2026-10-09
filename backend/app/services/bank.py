@@ -1,6 +1,6 @@
 """Фейковый банк в памяти: балансы и история операций демо-персонажей.
 
-Для демо этого достаточно. TODO(тимлид): перенести состояние в PostgreSQL (app/db),
+Для демо этого достаточно. Для пилота состояние переносится в PostgreSQL (app/db),
 когда понадобится несколько параллельных показов.
 """
 import uuid
@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from app import content
-from app.schemas import Persona, Risk, Transaction
+from app.schemas import Goal, Persona, Risk, Transaction
 
 
 # Категория трат по названию магазина — для истории из content/personas.json, где её нет
@@ -38,6 +38,7 @@ class Account:
     xp: int = 0
     done: set[str] = field(default_factory=set)  # пройденные сторис и действия, за которые уже дали XP
     last_intercept: Risk | None = None  # последний перехваченный перевод — для панели «что видит банк»
+    goals: list[Goal] = field(default_factory=list)  # цели и копилка
 
     @property
     def balance(self) -> float:
@@ -54,7 +55,12 @@ class FakeBank:
     def reset(self, persona_id: str) -> Account:
         raw = content.personas()[persona_id]
         persona = Persona(**{k: raw[k] for k in Persona.model_fields if k in raw})
-        account = Account(persona=persona)
+        account = Account(
+            persona=persona,
+            xp=raw.get("xp", 0),  # опыт из «Детского банка» — переносится мостом
+            done=set(raw.get("done", [])),
+            goals=[Goal(id=uuid.uuid4().hex[:6], **g) for g in raw.get("goals", [])],
+        )
         now = datetime.now()
         for h in raw.get("history", []):
             account.transactions.append(

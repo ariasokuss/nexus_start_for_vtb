@@ -130,3 +130,17 @@
 |---|---|---|
 | POST | `/api/shield/check` | `{image_base64}` — скриншот: EasyOCR → проверка; в ответе `recognized_text`. Без EasyOCR — 503 |
 | GET | `/api/quest/{id}` | Квест: `nodes` с `choices`, финалы `ending: good / bad`; XP — `POST /api/progress {quest_id}` |
+
+## Каналы роста: копилка, мост, «Пушкинская карта»
+
+| Метод | Путь | Тело → ответ |
+|---|---|---|
+| GET | `/api/goals/{persona_id}` | Цели: `[{id, title, target, saved}]` |
+| POST | `/api/goals` | `{persona_id, title, target}` → цель |
+| POST | `/api/goals/{goal_id}/deposit` | `{persona_id, amount}` → `{goal, balance, message}`; 422 — не хватает денег; +20 XP за первое пополнение |
+| POST | `/api/bridge/migrate` | `{persona_id, parent_consent}` → `{persona, carried_goals, carried_xp, carried_stories, message}`; 403 без согласия родителя, 409 если уже в «Старте» |
+| GET | `/api/pushkin/offers` | Офферы витрины «Старта» для держателей «Пушкинской карты» |
+| POST | `/api/pushkin/{persona_id}/activate` | → `{persona, offers, message}`; 409 если карта «Старт» уже есть |
+
+У персонажа есть `segment`: `kids` («Детский банк»), `start` («Старт»), `pushkin` (только «Пушкинская карта»), и `pushkin_balance`.
+Новые типы окон сценария: `birthday`, `bridge`, `pushkin`, `goal`; новые `expect.action`: `bridge`, `pushkin`, `goal` (`{goal, target, amount}`).

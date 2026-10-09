@@ -67,18 +67,46 @@ ACTION_RESULTS = {
 }
 
 
+def _rub(x: float) -> str:
+    return f"{x:,.0f} ₽".replace(",", " ")
+
+
+def draft(persona_id: str, kind: str, branch: str | None) -> str | None:
+    """Черновик обращения в банк или заявления в полицию по шаблону ветки (content/sos/report_templates.json)."""
+    templates = content.report_templates().get(kind, {})
+    template = templates.get(branch or "A") or next(iter(templates.values()), None)
+    if not template:
+        return None
+    account = bank.get(persona_id)
+    txs = account.transactions
+    inc = next((t for t in reversed(txs) if t.direction == "in" and (t.flagged or t.is_new_counterparty)), None)
+    out = next((t for t in reversed(txs) if t.direction == "out" and t.is_new_counterparty), None)
+    timeline = "\n".join(
+        f"{t.ts:%d.%m %H:%M}  {'+' if t.direction == 'in' else '−'}{_rub(t.amount)}  {t.counterparty}"
+        for t in txs[-6:]
+    )
+    return template.format(
+        name=account.persona.name,
+        age=account.persona.age,
+        date=f"{datetime.now():%d.%m.%Y}",
+        incoming=f"{_rub(inc.amount)} от «{inc.counterparty}» {inc.ts:%d.%m в %H:%M}" if inc else "—",
+        outgoing=f"{_rub(out.amount)} на «{out.counterparty}» {out.ts:%d.%m в %H:%M}" if out else "—",
+        timeline=timeline or "—",
+    )
+
+
 @router.post("/action")
 def action(req: SosActionRequest):
     engine.publish_for_persona(req.persona_id)
-    return {"action": req.action, "result": ACTION_RESULTS.get(req.action, "Готово")}
+    result = {"action": req.action, "result": ACTION_RESULTS.get(req.action, "Готово")}
+    if req.action in ("report_bank", "report_police"):
+        result["draft"] = draft(req.persona_id, req.action, req.branch)
+    return result
 
 
 @router.post("/report", response_model=ReportResponse)
 def report(req: ReportRequest):
-    """Черновик обращения в банк / заявления в полицию с хронологией операций.
-
-    TODO(тимлид): отдельные шаблоны по веткам A–D в content/sos/.
-    """
+    """Черновик обращения в банк по ветке (как в /action с report_bank) — для прямого вызова."""
     account = bank.get(req.persona_id)
     lines = []
     for t in account.transactions[-10:]:

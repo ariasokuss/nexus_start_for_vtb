@@ -23,6 +23,10 @@ from app.services.demo import engine
 
 router = APIRouter(prefix="/api", tags=["bank"])
 
+# Экран перехвата: что и в каком порядке показываем подростку
+INTERCEPT_CONSEQUENCES = ("uk187", "cbr_base")
+INTERCEPT_MAX_REASONS = 2
+
 # Имена «неизвестных» отправителей в песочнице — так выглядят переводы от дропов-вербовщиков
 STRANGER_NAMES = ["Иван К.", "Олег П.", "Марина С.", "Руслан Т.", "Алина В.", "Тимур Н."]
 
@@ -108,16 +112,18 @@ def transfer(req: TransferRequest):
     risk = risk_service.score_transfer(account, req.to, req.amount)
     if risk.level == "high" and not req.confirmed:
         legal = content.legal()
+        # По итогам опроса (docs/research/survey_interim.md): экран «перегружен текстом» — показываем
+        # 2 главные причины и 2 последствия; возраст ответственности знают только 24% — он первым.
         intercept = Intercept(
             title="Перевод остановлен",
-            text="Похоже, через вашу карту хотят провести чужие деньги. Так вербуют «дропов» — "
-            "и отвечать за такие переводы будет владелец карты.",
-            consequences=[legal[k]["short"] for k in ("card_block", "cbr_base", "uk187") if k in legal],
-            actions=["cancel", "offered_job", "check_message", "continue"],
+            text="Похоже, через вашу карту хотят провести чужие деньги. Отвечать за такой перевод будет владелец карты.",
+            consequences=[legal[k]["short"] for k in INTERCEPT_CONSEQUENCES if k in legal],
+            actions=["cancel", "offered_job", "call_bank", "check_message", "continue"],
         )
-        account.last_intercept = risk
+        account.last_intercept = risk  # полный список причин остаётся для панели «Что видит банк»
         engine.publish_for_persona(req.persona_id)
-        return TransferResponse(status="intercepted", risk=risk, intercept=intercept, balance=account.balance)
+        shown = risk.model_copy(update={"reasons": risk.reasons[:INTERCEPT_MAX_REASONS]})
+        return TransferResponse(status="intercepted", risk=shown, intercept=intercept, balance=account.balance)
 
     bank.outgoing(req.persona_id, req.amount, req.to)
     account.last_intercept = None

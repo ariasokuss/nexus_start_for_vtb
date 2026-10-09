@@ -11,6 +11,8 @@ const TAGS: Record<string, string> = {
   artem: 'Вербовка в дропы',
   dima: 'Угрозы после перевода',
   katya: 'Первая зарплата',
+  sonya: 'Мост в 14 лет',
+  lev: '«Пушкинская карта»',
 }
 
 export default function AccountPicker() {
