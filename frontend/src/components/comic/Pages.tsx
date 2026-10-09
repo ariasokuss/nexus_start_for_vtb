@@ -74,7 +74,6 @@ function Art({ children, label }: { children: ReactNode; label: string }) {
 
 export interface ComicPageDef {
   id: string
-  title: string // крупный заголовок экрана
   label: string // что на странице — для скринридера
   render: (go: { scenarios: () => void }) => ReactNode
 }
@@ -83,7 +82,6 @@ export interface ComicPageDef {
 export const PAGES: ComicPageDef[] = [
   {
     id: 'cover',
-    title: 'Старт',
     label: 'Обложка: «Старт». Что происходит, когда тебе 14',
     render: () => (
       <div className="comic-cover absolute inset-0">
@@ -104,7 +102,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'birthday',
-    title: 'В 14 детский банк заканчивается',
     label: 'Страница 1: Артёму 14, детский банк закончился',
     render: () => (
       <>
@@ -132,7 +129,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'alone',
-    title: 'Дальше — сам',
     label: 'Страница 2: взрослые функции недоступны, родители уже не видят',
     render: () => (
       <>
@@ -155,7 +151,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'attack',
-    title: 'А мошенники уже тут',
     label: 'Страница 3: на подростка сыплются предложения мошенников',
     render: () => (
       <>
@@ -177,7 +172,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'trap',
-    title: 'Чужие деньги на карте',
     label: 'Страница 4: деньги незнакомца и просьба переслать — это ст. 187 УК',
     render: () => (
       <>
@@ -201,7 +195,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'bridge',
-    title: 'Выход есть: «Старт»',
     label: 'Страница 5: «Старт» — мост между детским и взрослым банком',
     render: () => (
       <>
@@ -237,7 +230,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'guard',
-    title: 'Банк рядом в момент перевода',
     label: 'Страница 6: банк останавливает перевод и объясняет почему',
     render: () => (
       <>
@@ -261,7 +253,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'grow',
-    title: 'Первое по-взрослому',
     label: 'Страница 7: первая зарплата, копилка и цели',
     render: () => (
       <>
@@ -293,7 +284,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'try',
-    title: 'Попробуйте сами',
     label: 'Страница 8: попробуйте сами',
     render: (go) => (
       <>
@@ -313,7 +303,6 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'back',
-    title: 'Старт',
     label: 'Задняя обложка',
     render: () => (
       <div className="comic-cover absolute inset-0 grid place-items-center text-center text-white">
