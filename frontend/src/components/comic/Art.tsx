@@ -161,8 +161,6 @@ export function Teen({ x, y, s = 1, mood = 'calm', phone = true, wave = false, f
       <g transform="translate(0 -278)">
         <rect x="-14" y="38" width="28" height="22" fill={SKIN} stroke={INK} strokeWidth="4" />
         <circle cx="0" cy="0" r="54" fill={SKIN} stroke={INK} strokeWidth="4" />
-        <circle cx="-54" cy="6" r="10" fill={SKIN} stroke={INK} strokeWidth="4" />
-        <circle cx="54" cy="6" r="10" fill={SKIN} stroke={INK} strokeWidth="4" />
         <path
           d="M-56 -6q-6-46 30-58q-4 14 8 12q2-18 22-16q-2 12 10 10q8-14 26 0q22 16 18 52q-14-26-40-28q-30 4-46-2q-18 8-28 30z"
           fill={HAIR}

@@ -208,3 +208,10 @@ def test_account_snapshot_roundtrip():
     assert restored.xp == account.xp and restored.done == account.done
     assert restored.evidence == account.evidence and restored.goals == account.goals
     assert restored.last_intercept == account.last_intercept is not None
+
+
+def test_pushkin_buyout_offer_opens_lesson():
+    """Предложение «выкупить» Пушкинскую карту в сценарии Льва открывает историю о схеме."""
+    lesson = client.post("/api/events", json={"persona_id": "lev", "type": "pushkin_offer", "payload": {}}).json()["lesson"]
+    assert lesson["id"] == "pushkin_scam" and lesson["quiz"]["answer"] == 1
+    assert client.post("/api/demo/lev/reset").json()["steps_count"] == 4

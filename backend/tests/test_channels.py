@@ -65,6 +65,9 @@ def test_pushkin_holder_becomes_start_client():
 def test_new_scenarios_and_lev_pocket_money_is_not_flagged():
     client.post("/api/demo/lev/reset")
     client.post("/api/pushkin/lev/activate")
+    state = client.post("/api/demo/lev/next").json()  # предлагают «выкупить» Пушкинскую карту
+    assert state["step"]["id"] == "buyout" and state["step"]["expect"]["type"] == "pushkin_offer"
+    assert any("Скупаю балансы" in m["text"] for m in state["chat_history"])
     state = client.post("/api/demo/lev/next").json()  # мама пополняет карту
     assert state["step"]["expect"]["action"] == "goal"
     mom = [t for t in client.get("/api/personas/lev/transactions").json() if t["counterparty"] == "Мама"]

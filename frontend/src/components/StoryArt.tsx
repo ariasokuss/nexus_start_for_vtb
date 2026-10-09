@@ -9,6 +9,7 @@ export const STORY_THEME: Record<string, { from: string; to: string; glow: strin
   subscriptions: { from: '#1c0b26', to: '#4a1645', glow: '#ff5fa2' },
   budget_503020: { from: '#1a1a08', to: '#3a3a10', glow: '#c8f135' },
   quest: { from: '#0b1a2e', to: '#1d2f6b', glow: '#3cc3f0' },
+  pushkin_scam: { from: '#1f0d2b', to: '#4b1c4f', glow: '#ff9f43' },
 }
 
 const FALLBACK = STORY_THEME.dont_share_card
@@ -96,6 +97,36 @@ const ART: Record<string, (u: string) => React.ReactNode> = {
       <circle cx="100" cy="104" r="34" fill="#0f3d5c" />
       <circle cx="100" cy="104" r="62" fill={`url(#${u}-shine)`} />
       <path d="M38 104c0-20 10-38 26-50" stroke="#fff" strokeOpacity="0.5" strokeWidth="4" fill="none" strokeLinecap="round" />
+    </g>
+  ),
+  // Билет по «Пушкинской карте» со штампом «не продаётся» и пачка наличных-приманка
+  pushkin_scam: (u) => (
+    <g>
+      <linearGradient id={`${u}-ticket`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#ff9f43" />
+        <stop offset="1" stopColor="#ff5fa2" />
+      </linearGradient>
+      <g transform="rotate(-10 100 110)" filter={`url(#${u}-shadow)`}>
+        {/* билет с вырезами по бокам и линией отрыва */}
+        <path d="M44 74h112v22a11 11 0 0 0 0 22v22H44v-22a11 11 0 0 0 0-22z" fill={`url(#${u}-ticket)`} />
+        <path d="M44 74h112v22a11 11 0 0 0 0 22v22H44v-22a11 11 0 0 0 0-22z" fill={`url(#${u}-shine)`} />
+        <path d="M124 80v54" stroke="#fff" strokeOpacity="0.7" strokeWidth="2.5" strokeDasharray="5 5" />
+        <rect x="58" y="88" width="50" height="8" rx="4" fill="#fff" fillOpacity="0.85" />
+        <rect x="58" y="102" width="36" height="6" rx="3" fill="#fff" fillOpacity="0.6" />
+        <rect x="58" y="114" width="42" height="6" rx="3" fill="#fff" fillOpacity="0.6" />
+        <circle cx="140" cy="107" r="8" fill="#fff" fillOpacity="0.85" />
+      </g>
+      {/* штамп */}
+      <g transform="rotate(12 100 138)">
+        <rect x="46" y="124" width="108" height="28" rx="7" fill="#1f0d2b" fillOpacity="0.35" stroke="#ff4d5e" strokeWidth="3.5" />
+        <text x="100" y="143" textAnchor="middle" fontSize="12.5" fontWeight="800" fill="#ff6b78" fontFamily="Manrope, sans-serif" letterSpacing="0.5">НЕ ПРОДАЁТСЯ</text>
+      </g>
+      {/* наличные-приманка */}
+      <g transform="rotate(-16 62 50)" filter={`url(#${u}-shadow)`}>
+        <rect x="36" y="36" width="54" height="30" rx="6" fill="#22b07d" />
+        <rect x="41" y="41" width="44" height="20" rx="4" fill="none" stroke="#bff3d8" strokeWidth="2" />
+        <circle cx="63" cy="51" r="6" fill="#bff3d8" />
+      </g>
     </g>
   ),
   // Монеты и 13%

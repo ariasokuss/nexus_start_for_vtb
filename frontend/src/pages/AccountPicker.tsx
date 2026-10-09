@@ -47,7 +47,7 @@ export default function AccountPicker() {
       id: `comic-${i}`,
       label: pages.map((p) => p.label).join('. '),
       node: (
-        <div className={spread ? 'comic-spread' : 'comic-single'}>
+        <div className={spread && pages.length === 2 ? 'comic-spread' : 'comic-single'}>
           {pages.map((p) => (
             <div key={p.id} className="comic-sheet">
               <div className="comic-page" aria-label={p.label}>

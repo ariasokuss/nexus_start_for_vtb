@@ -92,7 +92,7 @@ export const PAGES: ComicPageDef[] = [
           <Teen x={300} y={760} s={1.15} mood="calm" />
         </Art>
         <div className="absolute inset-x-[8%] top-[7%] text-white">
-          <div className="comic-kicker">Комикс в 8 страницах</div>
+          <div className="comic-kicker">Комикс в 9 страницах</div>
           <div className="comic-title mt-[3%]">СТАРТ</div>
           <div className="comic-subtitle mt-[2%]">Что происходит с деньгами подростка, когда ему исполняется 14</div>
         </div>
@@ -171,8 +171,41 @@ export const PAGES: ComicPageDef[] = [
     ),
   },
   {
+    id: 'pushkin',
+    label: 'Страница 4: Артёму предлагают «выкупить» Пушкинскую карту — за этим кража или фиктивные концерты, а карту блокируют',
+    render: () => (
+      <>
+        <Art label="«Пушкинская карта» на рыболовном крючке, Артём с телефоном, штамп «Блок»">
+          <Halftone id="d-pk" />
+          <Frame x={24} y={24} w={552} h={752} fill="var(--comic-violet)" dots="d-pk">
+            <Burst cx={420} cy={420} r={480} color="var(--comic-burst-warm)" n={20} />
+            {/* леска и крючок */}
+            <path d="M432 24v186" stroke={INK} strokeWidth="4" />
+            <path d="M432 210v40a26 26 0 0 1-52 0v-10" fill="none" stroke={INK} strokeWidth="7" strokeLinecap="round" />
+            <path d="M380 240l-10 16 18-4z" fill={INK} />
+            {/* «Пушкинская карта» на крючке */}
+            <g transform="rotate(14 430 330)">
+              <rect x="340" y="262" width="190" height="122" rx="16" fill="#5b3df5" stroke={INK} strokeWidth="5" />
+              <rect x="340" y="262" width="190" height="122" rx="16" fill="url(#d-pk)" opacity="0.5" />
+              <rect x="358" y="284" width="36" height="26" rx="6" fill="#ffd34d" stroke={INK} strokeWidth="3" />
+              <rect x="358" y="336" width="110" height="10" rx="5" fill="#fff" opacity="0.85" />
+              <rect x="358" y="354" width="70" height="10" rx="5" fill="#fff" opacity="0.6" />
+            </g>
+            <Teen x={470} y={770} s={0.8} mood="worried" />
+            <Spiky cx={250} cy={530} r={76} fill="#f0443a" n={13} />
+          </Frame>
+        </Art>
+        <Caption x={44} y={44} w={330}>Ещё одна схема — «выкуп» Пушкинской карты.</Caption>
+        <Push x={44} y={136} w={290} title="Куплю баланс Пушкинской" text="За твои 2 300 ₽ дам 1 500 налом, сразу" tone="danger" />
+        <Bubble x={44} y={292} w={270} tail="left">Скинь номер карты, срок и код из смс — дальше я сам</Bubble>
+        <div className="comic-stamp absolute" style={pos(193, 505, 116)}>БЛОК!</div>
+        <Caption x={44} y={606} w={330}>Законно её не обналичить. Деньги спишут по коду или прогонят через фиктивные концерты, а карту заблокируют.</Caption>
+      </>
+    ),
+  },
+  {
     id: 'trap',
-    label: 'Страница 4: деньги незнакомца и просьба переслать — это ст. 187 УК',
+    label: 'Страница 5: деньги незнакомца и просьба переслать — это ст. 187 УК',
     render: () => (
       <>
         <Art label="Два кадра: на карту пришло 30 000 рублей от незнакомца; вербовщик просит переслать 27 000; штамп «ст. 187 УК»">
@@ -195,7 +228,7 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'bridge',
-    label: 'Страница 5: «Старт» — мост между детским и взрослым банком',
+    label: 'Страница 6: «Старт» — мост между детским и взрослым банком',
     render: () => (
       <>
         <Art label="Обрыв между «Детским банком» и «Взрослым банком», через него — светящийся мост «Старт», по которому идёт Артём">
@@ -230,7 +263,7 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'guard',
-    label: 'Страница 6: банк останавливает перевод и объясняет почему',
+    label: 'Страница 7: банк останавливает перевод и объясняет почему',
     render: () => (
       <>
         <Art label="Телефон с экраном «Перевод остановлен», Артём выдыхает">
@@ -253,7 +286,7 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'grow',
-    label: 'Страница 7: первая зарплата, копилка и цели',
+    label: 'Страница 8: первая зарплата, копилка и цели',
     render: () => (
       <>
         <Art label="Три кадра: первая зарплата, копилка на наушники, история про налоги">
@@ -284,7 +317,7 @@ export const PAGES: ComicPageDef[] = [
   },
   {
     id: 'try',
-    label: 'Страница 8: попробуйте сами',
+    label: 'Страница 9: попробуйте сами',
     render: (go) => (
       <>
         <Art label="Артём машет рукой">
