@@ -1,9 +1,12 @@
 import threading
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import assistant, channels, demo, learning, payments, shield, sos
+from app.services import store
+from app.services.bank import bank
 
 app = FastAPI(title="nexus · Старт", version="0.1.0", description="Контракты: docs/api.md")
 
@@ -16,6 +19,15 @@ app.add_middleware(
 
 for module in (demo, payments, sos, shield, learning, assistant, channels):
     app.include_router(module.router)
+
+
+@app.middleware("http")
+async def persist_bank(request: Request, call_next):
+    """После изменяющего запроса сохраняем затронутые аккаунты в PostgreSQL."""
+    response = await call_next(request)
+    if request.method != "GET":
+        await run_in_threadpool(store.save, bank.take_touched())
+    return response
 
 
 @app.on_event("startup")

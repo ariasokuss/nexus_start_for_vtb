@@ -188,3 +188,23 @@ def test_evidence_is_per_persona_and_goes_into_drafts():
 def test_evidence_rejects_garbage():
     assert client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": []}).status_code == 422
     assert client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": ["не картинка!"]}).status_code == 422
+
+
+def test_account_snapshot_roundtrip():
+    """Снимок для PostgreSQL сохраняет всё состояние аккаунта: операции, цели, XP, доказательства, перехват."""
+    from app.services import store
+    from app.services.bank import bank
+
+    client.post("/api/demo/artem/reset")
+    client.post("/api/demo/artem/next")
+    client.post("/api/payments/transfer", json={"persona_id": "artem", "to": "+79990001234", "amount": 27000})
+    client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": [PNG_1PX]})
+    client.post("/api/progress", json={"persona_id": "artem", "lesson_id": "spot_fraud"})
+    account = bank.get("artem")
+
+    restored = store.from_state(store.to_state(account))
+    assert restored.persona == account.persona
+    assert restored.transactions == account.transactions
+    assert restored.xp == account.xp and restored.done == account.done
+    assert restored.evidence == account.evidence and restored.goals == account.goals
+    assert restored.last_intercept == account.last_intercept is not None

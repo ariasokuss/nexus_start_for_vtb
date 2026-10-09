@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://nexus:nexus@localhost:5432/nexus"
+    persist_state: bool = True  # сохранять фейковый банк в PostgreSQL; без базы всё равно работает в памяти
     content_dir: Path = Path(__file__).resolve().parents[2] / "content"
     llm_provider: str = "none"  # none | ollama | gigachat
     ollama_url: str = "http://localhost:11434"

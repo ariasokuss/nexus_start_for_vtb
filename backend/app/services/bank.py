@@ -1,13 +1,14 @@
-"""Фейковый банк в памяти: балансы и история операций демо-персонажей.
+"""Фейковый банк: балансы и история операций демо-персонажей.
 
-Для демо этого достаточно. Для пилота состояние переносится в PostgreSQL (app/db),
-когда понадобится несколько параллельных показов.
+Работаем с аккаунтами в памяти; после изменяющих запросов они сохраняются в PostgreSQL
+(services/store.py) и переживают перезапуск бэкенда. Без базы — только память.
 """
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from app import content
+from app.services import store
 from app.schemas import Goal, Persona, Risk, Transaction
 
 
@@ -53,6 +54,12 @@ class Account:
 class FakeBank:
     def __init__(self) -> None:
         self._accounts: dict[str, Account] = {}
+        self._touched: set[str] = set()  # аккаунты, к которым обращались с последнего сохранения
+
+    def take_touched(self) -> dict[str, Account]:
+        """Аккаунты для сохранения после запроса (и сброс списка)."""
+        touched, self._touched = self._touched, set()
+        return {pid: self._accounts[pid] for pid in touched if pid in self._accounts}
 
     def reset(self, persona_id: str) -> Account:
         raw = content.personas()[persona_id]
@@ -78,11 +85,16 @@ class FakeBank:
                 )
             )
         self._accounts[persona_id] = account
+        self._touched.add(persona_id)
         return account
 
     def get(self, persona_id: str) -> Account:
         if persona_id not in self._accounts:
-            return self.reset(persona_id)
+            saved = store.load(persona_id)
+            if saved is None:
+                return self.reset(persona_id)
+            self._accounts[persona_id] = saved
+        self._touched.add(persona_id)
         return self._accounts[persona_id]
 
     def incoming(
