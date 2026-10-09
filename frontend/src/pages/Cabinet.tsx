@@ -18,6 +18,7 @@ import type {
   TransferResponse,
 } from '../api/types'
 import { PayModal, TopUpModal, TransferModal } from '../components/ActionModals'
+import AccountSwitcher from '../components/AccountSwitcher'
 import Assistant, { type Ask, type Nudge } from '../components/Assistant'
 import BankSees from '../components/BankSees'
 import { BirthdayWindow, BridgeWindow, GoalsModal, GoalWindow, PushkinWindow } from '../components/ChannelWindows'
@@ -58,6 +59,7 @@ export default function Cabinet() {
   const [goals, setGoals] = useState<Goal[]>([])
   const [live, setLive] = useState<LiveRisk | null>(null)
   const [modal, setModal] = useState<ModalState>(null)
+  const [switching, setSwitching] = useState(false)
   const [scenario, setScenario] = useState<DemoState | null>(null)
   const [nudge, setNudge] = useState<Nudge | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -487,6 +489,9 @@ export default function Cabinet() {
               </span>
               <span className="hidden text-[15px] font-semibold sm:inline">{persona.name}</span>
             </button>
+            <button onClick={() => setSwitching(true)} className="grid size-10 place-items-center rounded-full text-muted transition hover:bg-line hover:text-ink" title="Сменить аккаунт" aria-label="Сменить аккаунт">
+              <Icon name="logout" size={19} />
+            </button>
           </div>
         </div>
       </header>
@@ -697,6 +702,7 @@ export default function Cabinet() {
         />
       )}
       {modal?.kind === 'quest' && quest && <QuestModal quest={quest} onClose={() => setModal(null)} onFinish={finishQuest} />}
+      {switching && <AccountSwitcher currentId={personaId} onClose={() => setSwitching(false)} />}
       {modal?.kind === 'goals' && (
         <GoalsModal personaId={personaId} goals={goals} onChanged={refresh} onClose={() => setModal(null)} notify={notify} />
       )}

@@ -53,3 +53,12 @@ export const readAsDataUrl = (file: File) =>
     reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(file)
   })
+
+// Тема сценария каждого героя — на главной и в окне смены аккаунта
+export const PERSONA_TAGS: Record<string, string> = {
+  artem: 'Вербовка в дропы',
+  dima: 'Угрозы после перевода',
+  katya: 'Первая зарплата',
+  sonya: 'Переход в 14 лет',
+  lev: '«Пушкинская карта»',
+}

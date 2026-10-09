@@ -8,15 +8,8 @@ import FlipDeck, { goToSlide, type Slide } from '../components/FlipDeck'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import ThemeToggle from '../components/ThemeToggle'
-import { AVATAR_GRADIENT } from '../lib'
+import { AVATAR_GRADIENT, PERSONA_TAGS } from '../lib'
 
-const TAGS: Record<string, string> = {
-  artem: 'Вербовка в дропы',
-  dima: 'Угрозы после перевода',
-  katya: 'Первая зарплата',
-  sonya: 'Переход в 14 лет',
-  lev: '«Пушкинская карта»',
-}
 
 // Страницы комикса без обложек: роль обложки играет первый экран
 const COMIC = PAGES.filter((p) => p.id !== 'cover' && p.id !== 'back')
@@ -287,7 +280,7 @@ function Scenarios() {
                 <span className="scn-avatar" style={{ background: AVATAR_GRADIENT[p.id] }}>{p.name[0]}</span>
                 <span>
                   <span className="scn-name">{p.name}, {p.age}</span>
-                  <span className="scn-tag">{TAGS[p.id]}</span>
+                  <span className="scn-tag">{PERSONA_TAGS[p.id]}</span>
                 </span>
               </div>
               {scenario && <span className="scn-bubble">{scenario.title}</span>}
