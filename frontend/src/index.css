@@ -130,7 +130,6 @@ body {
 /* Страница комикса: размеры текста — от ширины страницы (cqw), чтобы книга одинаково выглядела на любом экране */
 .comic-page { position: absolute; inset: 0; overflow: hidden; background: var(--comic-paper); container-type: inline-size; user-select: none; }
 :root[data-theme='dark'] .comic-page svg { filter: brightness(0.92) saturate(0.95); }
-.comic-folio { position: absolute; bottom: 1.6cqw; left: 0; right: 0; text-align: center; font: 700 2.4cqw var(--font-comic); color: var(--color-muted); }
 .comic-caption {
   background: #fff1a8; color: #16171d; border: 0.55cqw solid #16171d; border-radius: 0.8cqw;
   padding: 1.6cqw 2.2cqw; font: 700 3.3cqw/1.25 var(--font-comic); box-shadow: 0.9cqw 0.9cqw 0 #16171d;
@@ -176,22 +175,42 @@ body {
 .comic-subtitle { font: 700 4.4cqw/1.25 var(--font-comic); }
 .comic-hint { font: 700 3.4cqw var(--font-comic); color: #fff; opacity: 0.85; }
 
-/* Книга: лист = лицевая сторона справа + оборот слева, переворачивается вокруг корешка */
-.book-stage { perspective: 2800px; }
-.book { position: relative; aspect-ratio: 3 / 2; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.leaf { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; transform-origin: left center; transform-style: preserve-3d; transition: transform 0.95s cubic-bezier(0.3, 0.7, 0.2, 1); }
-.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; cursor: pointer; border-radius: 0 14px 14px 0; box-shadow: 0 18px 50px rgb(22 23 29 / 0.22); }
-.face-back { transform: rotateY(180deg); border-radius: 14px 0 0 14px; }
-.face::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
-.face-front::after { background: linear-gradient(to right, rgb(0 0 0 / 0.18), transparent 7%); }
-.face-back::after { background: linear-gradient(to left, rgb(0 0 0 / 0.18), transparent 7%); }
-.single { position: relative; aspect-ratio: 3 / 4; max-width: 520px; }
-.single-page { position: absolute; inset: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 40px rgb(22 23 29 / 0.22); }
-.turn-next { animation: turn-next 0.55s cubic-bezier(0.3, 0.7, 0.2, 1) both; transform-origin: left center; }
-.turn-prev { animation: turn-prev 0.55s cubic-bezier(0.3, 0.7, 0.2, 1) both; transform-origin: right center; }
-@keyframes turn-next { from { transform: perspective(1600px) rotateY(55deg); opacity: 0.2; } to { transform: none; opacity: 1; } }
-@keyframes turn-prev { from { transform: perspective(1600px) rotateY(-55deg); opacity: 0.2; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) {
-  .book, .leaf { transition: none; }
-  .turn-next, .turn-prev { animation: none; }
+/* История при прокрутке: экраны во всю ширину переворачиваются вокруг левого края, справа налево */
+.story-stage { perspective: 2400px; }
+.story-screen {
+  position: absolute; inset: 0; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--color-page); will-change: transform;
 }
+.story-screen::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(var(--comic-dot) 1.6px, transparent 1.7px); background-size: 14px 14px;
+}
+.story-shade { position: absolute; inset: 0; background: #000; pointer-events: none; }
+.story-inner {
+  position: relative; height: 100%; display: flex; align-items: center; justify-content: center; gap: clamp(24px, 5vw, 88px);
+  padding: 84px clamp(16px, 4vw, 64px) 40px;
+}
+.story-side { max-width: 380px; }
+.story-num { font: 800 clamp(44px, 6vw, 88px)/1 var(--font-display); color: var(--color-brand); }
+.story-num span { font-size: 0.38em; color: var(--color-muted); }
+.story-title { margin-top: 14px; font: 800 clamp(26px, 3.2vw, 48px)/1.08 var(--font-sans); letter-spacing: -0.02em; color: var(--color-ink); }
+.story-page {
+  position: relative; flex: none; aspect-ratio: 3 / 4; height: min(calc(100vh - 140px), 860px); border-radius: 18px; overflow: hidden;
+  box-shadow: var(--shadow-pop);
+}
+.story-dots { position: absolute; right: clamp(10px, 2vw, 28px); top: 50%; transform: translateY(-50%); display: grid; gap: 10px; z-index: 50; }
+.story-dots button { width: 10px; height: 10px; border-radius: 99px; background: var(--color-line); transition: all 0.2s; }
+.story-dots button.is-on { height: 28px; background: var(--color-brand); }
+.story-hint {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 50; padding: 8px 16px; border-radius: 99px;
+  background: var(--color-night); color: #fff; font: 600 14px var(--font-sans); white-space: nowrap; animation: fade 0.4s both;
+}
+@media (max-width: 860px) {
+  .story-inner { flex-direction: column; justify-content: center; gap: 14px; padding-top: 76px; }
+  .story-side { display: flex; align-items: baseline; gap: 12px; max-width: none; width: min(92vw, calc((100vh - 200px) * 0.75)); }
+  .story-num { font-size: 30px; }
+  .story-title { margin: 0; font-size: 20px; }
+  .story-page { height: auto; width: min(92vw, calc((100vh - 200px) * 0.75)); }
+  .story-dots { display: none; }
+}
+

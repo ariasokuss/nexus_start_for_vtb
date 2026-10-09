@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import type { Persona, ScenarioInfo } from '../api/types'
 import Icon from '../components/Icon'
-import ComicBook from '../components/comic/ComicBook'
+import ScrollStory from '../components/comic/ScrollStory'
 import Logo from '../components/Logo'
 import ThemeToggle from '../components/ThemeToggle'
 import { AVATAR_GRADIENT, rub } from '../lib'
@@ -36,23 +36,32 @@ export default function AccountPicker() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-4 sm:px-8">
-        <section className="pb-16 pt-10 sm:pt-14">
-          <div className="mx-auto max-w-[760px] text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">Раздел ВТБ Онлайн для 14–22 лет</p>
-            <h1 className="mt-3 text-[34px] font-extrabold leading-[1.08] tracking-tight sm:text-[52px]">
-              В 14 детский банк заканчивается. Вербовщики — нет.
-            </h1>
-            <p className="mt-4 text-lg leading-relaxed text-muted">Листайте комикс — 8 страниц о том, зачем нужен «Старт».</p>
+      <main>
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-8">
+        <section className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center py-12 text-center">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">Раздел ВТБ Онлайн для 14–22 лет</p>
+          <h1 className="mt-4 max-w-[900px] text-[38px] font-extrabold leading-[1.05] tracking-tight sm:text-[64px]">
+            В 14 детский банк заканчивается. <span className="bg-gradient-to-r from-brand to-pink bg-clip-text text-transparent">Вербовщики — нет.</span>
+          </h1>
+          <p className="mt-5 max-w-[620px] text-lg leading-relaxed text-muted">
+            «Старт» — буфер между детским и взрослым банком: защищает подростка, когда его пытаются использовать, и учит обращаться с первыми деньгами.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <button onClick={() => scrollTo('story')} className="btn-primary">Прочитать историю</button>
+            <button onClick={() => scrollTo('scenarios')} className="btn-ghost"><Icon name="play" size={16} /> Сразу к сценариям</button>
           </div>
-          <div className="mt-10">
-            <ComicBook onScenarios={() => scrollTo('scenarios')} />
-          </div>
+          <button onClick={() => scrollTo('story')} className="mt-14 grid size-11 animate-bounce place-items-center rounded-full bg-surface text-muted" style={{ boxShadow: 'var(--shadow-card)' }} aria-label="К истории">
+            <Icon name="chevron" className="rotate-90" />
+          </button>
         </section>
+      </div>
+      <ScrollStory onScenarios={() => scrollTo('scenarios')} />
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-8">
         <WhyNow />
         <Features />
         <Algorithm />
         <Scenarios />
+      </div>
       </main>
       <footer className="mx-auto max-w-[1180px] px-4 pb-10 pt-6 text-sm text-muted sm:px-8">
         «Старт» — концепт молодёжного раздела для ВТБ Онлайн, команда nexus. Данные в демо синтетические. Это не юридическая консультация.
