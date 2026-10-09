@@ -23,7 +23,6 @@ import BankSees from '../components/BankSees'
 import { BirthdayWindow, BridgeWindow, GoalsModal, GoalWindow, PushkinWindow } from '../components/ChannelWindows'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
-import Operations from '../components/Operations'
 import ProfileModal from '../components/ProfileModal'
 import QuestModal from '../components/QuestModal'
 import { InterceptModal, ShieldModal, SosModal } from '../components/SafetyModals'
@@ -638,7 +637,6 @@ export default function Cabinet() {
             </button>
 
             <Spending txs={txs} />
-            <Operations txs={txs} />
           </div>
         </div>
       </main>

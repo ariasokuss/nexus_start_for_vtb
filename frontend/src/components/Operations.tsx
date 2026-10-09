@@ -55,42 +55,28 @@ function Row({ t }: { t: Transaction }) {
   )
 }
 
-export default function Operations({ txs }: { txs: Transaction[] }) {
-  const [open, setOpen] = useState(false)
+// Вся история операций во всплывающем окне — открывается из «Операций за месяц»
+export default function OperationsModal({ txs, onClose }: { txs: Transaction[]; onClose: () => void }) {
   const [filter, setFilter] = useState<'all' | 'in' | 'out'>('all')
-  const recent = [...txs].reverse()
-  const full = recent.filter((t) => filter === 'all' || t.direction === filter)
+  const list = [...txs].reverse().filter((t) => filter === 'all' || t.direction === filter)
 
   return (
-    <div className="card p-6 sm:p-7">
-      <div className="flex items-center justify-between">
-        <h3 className="text-[20px] font-bold sm:text-[22px]">История операций</h3>
-        <button onClick={() => setOpen(true)} className="flex shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-semibold text-brand hover:underline">
-          Все операции <Icon name="chevron" size={16} />
-        </button>
+    <Modal title="История операций" onClose={onClose} width="max-w-[620px]">
+      <div className="flex flex-wrap gap-2">
+        {([['all', 'Все'], ['in', 'Пополнения'], ['out', 'Траты и переводы']] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setFilter(k)}
+            className={`chip border ${filter === k ? 'border-brand bg-brand-soft text-brand' : 'border-line hover:bg-page'}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
-      <ul className="mt-3 divide-y divide-line">
-        {recent.slice(0, 3).map((t) => <Row key={t.id} t={t} />)}
+      <ul className="mt-2 divide-y divide-line">
+        {list.map((t) => <Row key={t.id} t={t} />)}
+        {list.length === 0 && <li className="py-6 text-center text-muted">Операций нет</li>}
       </ul>
-
-      {open && (
-        <Modal title="Все операции" onClose={() => setOpen(false)} width="max-w-[620px]">
-          <div className="flex gap-2">
-            {([['all', 'Все'], ['in', 'Пополнения'], ['out', 'Траты и переводы']] as const).map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`chip border ${filter === k ? 'border-brand bg-brand-soft text-brand' : 'border-line hover:bg-page'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <ul className="mt-2 divide-y divide-line">
-            {full.map((t) => <Row key={t.id} t={t} />)}
-          </ul>
-        </Modal>
-      )}
-    </div>
+    </Modal>
   )
 }

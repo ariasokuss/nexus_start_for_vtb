@@ -1,5 +1,8 @@
 import { useState } from 'react'
 
+import Icon from './Icon'
+import OperationsModal from './Operations'
+
 import type { Transaction } from '../api/types'
 import { CATEGORIES, categoryOf, rub } from '../lib'
 
@@ -9,6 +12,7 @@ const SUSPICIOUS = 'Под проверкой'
 // Операции за месяц: кольцо и чипы по категориям (как в веб-кабинетах банков).
 export default function Spending({ txs }: { txs: Transaction[] }) {
   const [tab, setTab] = useState<'out' | 'in'>('out')
+  const [history, setHistory] = useState(false)
   const monthAgo = Date.now() - 31 * 86_400_000
   const list = txs.filter((t) => t.direction === tab && new Date(t.ts).getTime() >= monthAgo)
 
@@ -38,7 +42,12 @@ export default function Spending({ txs }: { txs: Transaction[] }) {
 
   return (
     <div className="card p-6 sm:p-7">
-      <h3 className="text-[22px] font-bold">Операции за месяц</h3>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-[22px] font-bold">Операции за месяц</h3>
+        <button onClick={() => setHistory(true)} className="chip border border-line font-semibold hover:bg-page">
+          <Icon name="book" size={16} /> История операций
+        </button>
+      </div>
       <div className="mt-4 flex gap-2">
         {(['out', 'in'] as const).map((k) => (
           <button
@@ -50,16 +59,18 @@ export default function Spending({ txs }: { txs: Transaction[] }) {
           </button>
         ))}
       </div>
-      <div className="mt-5 flex flex-col-reverse items-center gap-6 sm:flex-row sm:items-start">
-        <div className="flex flex-1 flex-wrap gap-2">
-          {items.length === 0 && <span className="text-muted">Операций пока нет</span>}
+      <div className="mt-5 flex flex-col-reverse items-center gap-6 sm:flex-row sm:items-center">
+        <ul className="w-full flex-1 space-y-1">
+          {items.length === 0 && <li className="text-muted">Операций пока нет</li>}
           {items.map((x) => (
-            <span key={x.key} className="chip" style={{ background: `color-mix(in srgb, ${x.color} 12%, var(--color-surface))` }}>
-              <span className="size-2 rounded-full" style={{ background: x.color }} />
-              {x.label} {rub(x.value)}
-            </span>
+            <li key={x.key} className="flex items-center gap-3 rounded-xl px-2 py-2 text-[15px]">
+              <span className="size-2.5 shrink-0 rounded-full" style={{ background: x.color }} />
+              <span className="min-w-0 flex-1 truncate">{x.label}</span>
+              <span className="text-sm text-muted">{total ? Math.round((x.value / total) * 100) : 0}%</span>
+              <span className="w-[96px] text-right font-semibold tabular-nums">{rub(x.value)}</span>
+            </li>
           ))}
-        </div>
+        </ul>
         <div className="relative size-[170px] shrink-0">
           <svg viewBox="0 0 170 170" className="-rotate-90">
             <circle cx="85" cy="85" r={R} fill="none" stroke="var(--color-page)" strokeWidth="16" />
@@ -91,6 +102,7 @@ export default function Spending({ txs }: { txs: Transaction[] }) {
           </div>
         </div>
       </div>
+      {history && <OperationsModal txs={txs} onClose={() => setHistory(false)} />}
     </div>
   )
 }

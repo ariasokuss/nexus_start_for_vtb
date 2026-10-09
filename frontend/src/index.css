@@ -81,6 +81,12 @@ body {
   box-shadow: var(--shadow-card);
 }
 
+/* Горизонтальная прокрутка без полосы: листается свайпом, колесом с Shift или тачпадом */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
 @utility chip {
   @apply inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition;
 }

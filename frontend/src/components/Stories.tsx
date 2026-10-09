@@ -14,8 +14,33 @@ export function StoriesRow({ stories, done, onOpen, onOpenQuest, questDone = fal
   onOpenQuest?: () => void
   questDone?: boolean
 }) {
+  // Полосы прокрутки нет — на компьютере листаем стрелками по краям, они видны, только когда есть куда листать
+  const row = useRef<HTMLDivElement>(null)
+  const [edges, setEdges] = useState({ left: false, right: false })
+  const measure = () => {
+    const el = row.current
+    if (el) setEdges({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 })
+  }
+  useEffect(() => {
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [stories.length])
+  const scroll = (dir: 1 | -1) => row.current?.scrollBy({ left: dir * row.current.clientWidth * 0.7, behavior: 'smooth' })
+
   return (
-    <div className="-mx-4 flex gap-3.5 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
+    <div className="relative">
+      {edges.left && (
+        <button onClick={() => scroll(-1)} className="absolute -left-5 top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink sm:grid" style={{ boxShadow: 'var(--shadow-pop)' }} aria-label="Предыдущие истории">
+          <Icon name="back" />
+        </button>
+      )}
+      {edges.right && (
+        <button onClick={() => scroll(1)} className="absolute -right-5 top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-surface text-ink sm:grid" style={{ boxShadow: 'var(--shadow-pop)' }} aria-label="Следующие истории">
+          <Icon name="chevron" />
+        </button>
+      )}
+      <div ref={row} onScroll={measure} className="no-scrollbar -mx-4 flex gap-3.5 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0">
       {onOpenQuest && (
         <button
           onClick={onOpenQuest}
@@ -55,6 +80,7 @@ export function StoriesRow({ stories, done, onOpen, onOpenQuest, questDone = fal
           </button>
         )
       })}
+      </div>
     </div>
   )
 }

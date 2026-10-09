@@ -106,14 +106,36 @@ const ART: Record<string, (u: string) => React.ReactNode> = {
         <stop offset="0.5" stopColor="#ffe48a" />
         <stop offset="1" stopColor="#d99a1e" />
       </linearGradient>
+      {/* Стопка: каждая монета — ребро с нижней дугой, стык и лицевая сторона; рисуем снизу вверх,
+          чуть сдвигая по горизонтали, чтобы из-под верхней монеты выглядывал край нижней */}
       <g filter={`url(#${u}-shadow)`}>
-        {[0, 1, 2, 3, 4].map((k) => (
-          <g key={k} transform={`translate(0 ${-k * 14})`}>
-            <ellipse cx="82" cy="152" rx="40" ry="12" fill="#b9801a" />
-            <rect x="42" y="140" width="80" height="12" fill={`url(#${u}-coin)`} />
-            <ellipse cx="82" cy="140" rx="40" ry="12" fill="#ffe48a" />
-          </g>
-        ))}
+        {[0, 3, -2, 4, -1, 2].map((dx, k, all) => {
+          const cx = 76 + dx
+          const t = 150 - k * 11
+          const top = k === all.length - 1
+          return (
+            <g key={k}>
+              <path d={`M${cx - 38} ${t}v10a38 11 0 0 0 76 0v-10z`} fill={`url(#${u}-coin)`} />
+              <path d={`M${cx - 38} ${t + 10}a38 11 0 0 0 76 0`} fill="none" stroke="#9a6410" strokeWidth="2" />
+              {[-26, -13, 0, 13, 26].map((x) => (
+                <path key={x} d={`M${cx + x} ${t + 3 + Math.abs(x) / 9}v7`} stroke="#c58a1c" strokeWidth="1.6" />
+              ))}
+              <ellipse cx={cx} cy={t} rx="38" ry="11" fill="#ffe08a" stroke="#d99a1e" strokeWidth="2" />
+              {top && (
+                <>
+                  <ellipse cx={cx} cy={t} rx="27" ry="7.5" fill="none" stroke="#e7ad2c" strokeWidth="2" />
+                  <text x={cx} y={t + 5} textAnchor="middle" fontSize="15" fontWeight="800" fill="#b97a10" fontFamily="Manrope, sans-serif">₽</text>
+                </>
+              )}
+            </g>
+          )
+        })}
+      </g>
+      {/* Одна монета улетает к «13%» — это удержанный налог */}
+      <path d="M118 96q14-14 22-22" fill="none" stroke="#22d38f" strokeWidth="2.5" strokeDasharray="4 5" strokeLinecap="round" />
+      <g transform="rotate(-28 124 108)" filter={`url(#${u}-shadow)`}>
+        <path d="M104 108v6a20 6 0 0 0 40 0v-6z" fill={`url(#${u}-coin)`} />
+        <ellipse cx="124" cy="108" rx="20" ry="6" fill="#ffe08a" stroke="#d99a1e" strokeWidth="1.6" />
       </g>
       <g transform="rotate(10 146 70)" filter={`url(#${u}-shadow)`}>
         <rect x="110" y="44" width="74" height="52" rx="16" fill="#22d38f" />
