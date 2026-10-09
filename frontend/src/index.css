@@ -57,6 +57,8 @@
   --comic-panel: #fffdf7;
   --comic-dot: rgb(22 23 29 / 0.07);
   --comic-red: #ffe1dc; --comic-cream: #fff4d6; --comic-sky: #dff3ff; --comic-lime: #e9ffd1; --comic-violet: #efeaff;
+  --comic-line: #16171d;
+  --scn-artem: #ece7ff; --scn-dima: #ffe1dc; --scn-katya: #eaf8cf; --scn-sonya: #ffe6cf; --scn-lev: #dcf1ff;
   --comic-burst-warm: rgb(255 228 92 / 0.35); --comic-burst-red: rgb(240 68 58 / 0.14); --comic-burst-violet: rgb(91 61 245 / 0.12);
 }
 :root[data-theme='dark'] {
@@ -64,6 +66,8 @@
   --comic-panel: #2a2c3e;
   --comic-dot: rgb(255 255 255 / 0.06);
   --comic-red: #3a2230; --comic-cream: #33302a; --comic-sky: #1e3044; --comic-lime: #23331f; --comic-violet: #2a2546;
+  --comic-line: #8f86ff;
+  --scn-artem: #272048; --scn-dima: #3a2228; --scn-katya: #22301d; --scn-sonya: #3a2a1d; --scn-lev: #1b2c40;
   --comic-burst-warm: rgb(91 61 245 / 0.22); --comic-burst-red: rgb(240 68 58 / 0.16); --comic-burst-violet: rgb(255 95 162 / 0.12);
 }
 
@@ -207,3 +211,40 @@ body {
 @media (min-width: 1024px) { .deck-row.lg\:grid { display: grid; gap: 12px; overflow: visible; } }
 @media (max-width: 640px) { .deck-dots { display: none; } }
 
+
+/* Экран выбора героя: карточки в комикс-стиле, 3 сверху и 2 по центру снизу */
+.scn-title { font: 800 clamp(30px, 4.4vw, 60px)/1.05 var(--font-display); color: var(--color-ink); text-shadow: 4px 4px 0 var(--color-brand-soft); }
+.scn-grid { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 10px 18px 4px; margin: 0 -4px; scrollbar-width: none; }
+.scn-grid::-webkit-scrollbar { display: none; }
+.scn-card {
+  position: relative; display: flex; flex-direction: column; text-align: left; flex: none; width: min(78vw, 300px); scroll-snap-align: center;
+  padding: 20px; border: 3px solid var(--comic-line); border-radius: 24px; box-shadow: 6px 6px 0 var(--comic-line);
+  transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;
+}
+.scn-card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--comic-line); }
+.scn-card:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--comic-line); }
+.scn-artem { background: var(--scn-artem); } .scn-dima { background: var(--scn-dima); } .scn-katya { background: var(--scn-katya); }
+.scn-sonya { background: var(--scn-sonya); } .scn-lev { background: var(--scn-lev); }
+.scn-avatar {
+  display: grid; place-items: center; flex: none; width: 58px; height: 58px; border-radius: 16px; border: 3px solid var(--comic-line);
+  color: #fff; font: 800 28px var(--font-display); -webkit-text-stroke: 1.5px #16171d; paint-order: stroke fill;
+}
+.scn-name { display: block; font: 800 21px/1.1 var(--font-display); color: var(--color-ink); }
+.scn-tag { display: inline-block; margin-top: 6px; padding: 2px 10px; border: 2px solid var(--comic-line); border-radius: 99px; background: var(--color-surface); font: 700 12px var(--font-sans); color: var(--color-ink); }
+.scn-bubble {
+  position: relative; display: block; margin-top: 18px; padding: 12px 14px; background: #fff; color: #16171d; border: 3px solid var(--comic-line);
+  border-radius: 18px; font: 700 15px/1.3 var(--font-comic);
+}
+.scn-bubble::before, .scn-bubble::after { content: ''; position: absolute; border-style: solid; }
+.scn-bubble::before { left: 26px; top: -15px; border-width: 0 0 15px 14px; border-color: transparent transparent var(--comic-line) transparent; }
+.scn-bubble::after { left: 29.5px; top: -9px; border-width: 0 0 10px 9px; border-color: transparent transparent #fff transparent; }
+.scn-go {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 3px solid var(--comic-line); border-radius: 14px;
+  background: #c8f135; color: #16171d; font: 800 14px var(--font-display); box-shadow: 3px 3px 0 var(--comic-line);
+}
+@media (min-width: 1024px) {
+  .scn-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px 32px; overflow: visible; padding: 0 12px 10px 0; margin: 0; }
+  .scn-card { width: auto; grid-column: span 2; min-height: min(30vh, 250px); padding: 24px; }
+  .scn-row2-a { grid-column: 2 / span 2; }
+  .scn-row2-b { grid-column: 4 / span 2; }
+}

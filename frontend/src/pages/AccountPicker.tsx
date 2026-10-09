@@ -8,7 +8,7 @@ import FlipDeck, { goToSlide, type Slide } from '../components/FlipDeck'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import ThemeToggle from '../components/ThemeToggle'
-import { AVATAR_GRADIENT, rub } from '../lib'
+import { AVATAR_GRADIENT } from '../lib'
 
 const TAGS: Record<string, string> = {
   artem: 'Вербовка в дропы',
@@ -262,10 +262,16 @@ function Scenarios() {
 
   return (
     <Screen>
-      <SectionTitle eyebrow="Попробуйте сами" title="Посмотрите сценарии" text="Выберите аккаунт и нажмите «Проиграть сценарий» — или пополняйте, переводите и платите сами." />
+      <div className="text-center">
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">Попробуйте сами</p>
+        <h2 className="scn-title mt-2">Выберите героя</h2>
+        <p className="mx-auto mt-2 max-w-[560px] text-[15px] text-muted sm:text-base">
+          Нажмите «Проиграть сценарий» в кабинете — или пополняйте, переводите и платите сами.
+        </p>
+      </div>
       {error && <div className="card mt-6 p-5 text-risk-high">{error}</div>}
-      <div className="deck-row mt-6 sm:mt-8 lg:grid lg:grid-cols-5">
-        {personas.map((p) => {
+      <div className="scn-grid mt-7 sm:mt-9">
+        {personas.map((p, i) => {
           const scenario = scenarios.find((s) => s.persona === p.id)
           return (
             <button
@@ -275,30 +281,25 @@ function Scenarios() {
                 await api.resetPersona(p.id).catch(() => null)
                 navigate(`/u/${p.id}`)
               }}
-              className="card group flex w-[64vw] max-w-[260px] shrink-0 snap-center flex-col p-5 text-left transition hover:-translate-y-1 hover:shadow-[var(--shadow-pop)] lg:w-auto lg:max-w-none"
+              className={`scn-card scn-${p.id} ${i === 3 ? 'scn-row2-a' : i === 4 ? 'scn-row2-b' : ''}`}
             >
-              <div className="flex items-center gap-3">
-                <div className="grid size-12 shrink-0 place-items-center rounded-2xl text-xl font-extrabold text-white" style={{ background: AVATAR_GRADIENT[p.id] }}>
-                  {p.name[0]}
-                </div>
-                <div>
-                  <div className="font-bold">{p.name}, {p.age}</div>
-                  <div className="text-xs text-muted">Баланс {rub(p.balance)}</div>
-                </div>
-              </div>
-              {scenario && <div className="mt-4 flex-1 text-[14px] font-semibold leading-snug">{scenario.title}</div>}
-              <span className="chip mt-3 w-fit bg-brand-soft px-2.5 py-1 text-xs text-brand">{TAGS[p.id]}</span>
-              <div className="mt-4 flex items-center justify-between text-sm font-semibold text-brand">
-                Войти
-                <span className="grid size-8 place-items-center rounded-full bg-brand text-white transition group-hover:translate-x-1">
-                  <Icon name="send" size={15} />
+              <div className="flex items-center gap-3.5">
+                <span className="scn-avatar" style={{ background: AVATAR_GRADIENT[p.id] }}>{p.name[0]}</span>
+                <span>
+                  <span className="scn-name">{p.name}, {p.age}</span>
+                  <span className="scn-tag">{TAGS[p.id]}</span>
                 </span>
               </div>
+              {scenario && <span className="scn-bubble">{scenario.title}</span>}
+              <span className="mt-auto flex items-center justify-between gap-3 pt-4">
+                <span className="text-xs font-semibold text-muted">{scenario ? `${scenario.steps_count} шагов` : ''}</span>
+                <span className="scn-go">Войти <Icon name="send" size={16} /></span>
+              </span>
             </button>
           )
         })}
       </div>
-      <p className="mt-8 text-xs text-muted">
+      <p className="mt-8 text-center text-xs text-muted">
         «Старт» — концепт молодёжного раздела для ВТБ Онлайн, команда nexus. Данные в демо синтетические. Это не юридическая консультация.
       </p>
     </Screen>
