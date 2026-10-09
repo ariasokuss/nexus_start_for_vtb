@@ -122,6 +122,14 @@ export interface SosStep {
   legal: string | null
 }
 
+export interface LegalItem {
+  id: string
+  short: string
+  full: string
+  sources: string[]
+  verified: boolean
+}
+
 export interface SosBranch {
   id: 'A' | 'B' | 'C' | 'D'
   title: string

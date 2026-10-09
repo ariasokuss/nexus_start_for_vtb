@@ -165,3 +165,26 @@ def test_sos_report_drafts_by_branch():
 def test_llm_without_provider_returns_none():
     from app.services import llm
     assert llm.complete_json("system", "user") is None
+
+
+PNG_1PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+
+def test_evidence_is_per_persona_and_goes_into_drafts():
+    client.post("/api/personas/artem/reset")
+    client.post("/api/personas/dima/reset")
+    r = client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": [PNG_1PX, PNG_1PX]}).json()
+    assert r["count"] == 2 and r["evidence_id"].startswith("EV-")
+    draft = client.post("/api/sos/action", json={"persona_id": "artem", "action": "report_bank", "branch": "A"}).json()["draft"]
+    assert "скриншоты переписки — 2 шт." in draft and r["evidence_id"] in draft
+    # чужие доказательства в обращение другого клиента не попадают
+    other = client.post("/api/sos/report", json={"persona_id": "dima", "branch": "B"}).json()
+    assert other["attachments"] == [] and "скриншоты" not in other["draft_text"]
+    # сброс аккаунта очищает доказательства
+    client.post("/api/personas/artem/reset")
+    assert client.post("/api/sos/report", json={"persona_id": "artem", "branch": "A"}).json()["attachments"] == []
+
+
+def test_evidence_rejects_garbage():
+    assert client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": []}).status_code == 422
+    assert client.post("/api/sos/evidence", json={"persona_id": "artem", "images_base64": ["не картинка!"]}).status_code == 422

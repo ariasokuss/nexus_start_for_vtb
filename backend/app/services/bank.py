@@ -39,6 +39,8 @@ class Account:
     done: set[str] = field(default_factory=set)  # пройденные сторис и действия, за которые уже дали XP
     last_intercept: Risk | None = None  # последний перехваченный перевод — для панели «что видит банк»
     goals: list[Goal] = field(default_factory=list)  # цели и копилка
+    # Доказательства к обращениям: номер пакета → число скриншотов. Сами картинки в демо не храним
+    evidence: dict[str, int] = field(default_factory=dict)
 
     @property
     def balance(self) -> float:

@@ -118,7 +118,7 @@ export function StoryViewer({ stories, start, done, onClose, onFinish, onAction 
   const already = done.has(`lesson:${story.id}`) && gained === 0
 
   return (
-    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/85">
+    <div role="dialog" aria-modal="true" aria-label={story.title} data-viewer="story" className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/85">
       <button onClick={() => goStory(si - 1)} disabled={si === 0} className="mr-6 hidden size-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 disabled:opacity-0 md:grid" aria-label="Предыдущая история">
         <Icon name="back" />
       </button>

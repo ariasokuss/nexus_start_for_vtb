@@ -22,6 +22,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://nexus:nexus@db:5432/nexus}
       CONTENT_DIR: /content
+      WATCHFILES_FORCE_POLLING: "true"   # --reload в Docker на Windows/macOS: иначе правки не подхватываются
       LLM_PROVIDER: ${LLM_PROVIDER:-none}
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b-instruct}
@@ -41,8 +42,11 @@ services:
     build: ./frontend
     environment:
       VITE_API_PROXY: http://backend:8000
+      VITE_POLL: "1"
     volumes:
       - ./frontend/src:/srv/src
+      - ./frontend/public:/srv/public
+      - ./frontend/index.html:/srv/index.html
     ports:
       - "5173:5173"
     depends_on:

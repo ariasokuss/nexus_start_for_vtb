@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
 import { api } from '../api/client'
-import type { InterceptAction, Persona, ShieldResult, SosBranch, Transaction, TransferResponse } from '../api/types'
-import { RISK_COLOR, RISK_LABEL, rub } from '../lib'
+import type { InterceptAction, LegalItem, Persona, ShieldResult, SosBranch, Transaction, TransferResponse } from '../api/types'
+import { RISK_COLOR, RISK_LABEL, readAsDataUrl, rub } from '../lib'
 import Icon from './Icon'
 import Modal from './Modal'
 
@@ -15,7 +15,14 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
   onClose: () => void
 }) {
   const [confirming, setConfirming] = useState(false)
+  const [legal, setLegal] = useState<LegalItem[]>([])
   const it = result.intercept!
+
+  useEffect(() => {
+    api.legal().then(setLegal).catch(() => {})
+  }, [])
+  // Последствия на экране — короткие формулировки из legal.json; находим их записи, чтобы показать источники
+  const basis = legal.filter((x) => it.consequences.includes(x.short))
 
   if (confirming) {
     return (
@@ -79,6 +86,7 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
             {it.consequences.map((c) => <li key={c}>— {c}</li>)}
           </ul>
           <div className="mt-2 text-xs text-muted">Это не юридическая консультация.</div>
+          <LegalNote items={basis} />
         </div>
       )}
 
@@ -98,6 +106,36 @@ export function InterceptModal({ result, to, amount, onAction, onClose }: {
         </button>
       </div>
     </Modal>
+  )
+}
+
+// Основание шага: формулировка из content/legal.json и ссылки на первоисточники
+function LegalNote({ items }: { items: LegalItem[] }) {
+  if (!items.length) return null
+  return (
+    <details className="group mt-2 text-[13px]">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-semibold text-brand">
+        <Icon name="chevron" size={14} className="transition group-open:rotate-90" /> Основание
+      </summary>
+      {items.map((item) => (
+        <div key={item.id} className="mt-2 rounded-2xl bg-page p-3 leading-snug">
+          <p className="font-semibold">{item.short}</p>
+          <p className="mt-1 text-ink/75">{item.full}</p>
+          <ul className="mt-2 space-y-1">
+            {item.sources.map((src) => {
+              const [url, ...rest] = src.split(' — ')
+              return (
+                <li key={src}>
+                  <a href={url} target="_blank" rel="noreferrer" className="break-words text-brand underline underline-offset-2">
+                    {rest.join(' — ') || new URL(url).hostname}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ))}
+    </details>
   )
 }
 
@@ -127,17 +165,21 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
   const [branchId, setBranchId] = useState<SosBranch['id'] | null>(initialBranch ?? null)
   const [done, setDone] = useState<Record<number, string>>({})
   const [drafts, setDrafts] = useState<Record<number, string>>({})
+  const [errors, setErrors] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState<number | null>(null)
+
+  const [legal, setLegal] = useState<Record<string, LegalItem>>({})
 
   useEffect(() => {
     api.sosBranches().then(setBranches)
+    api.legal().then((items) => setLegal(Object.fromEntries(items.map((x) => [x.id, x])))).catch(() => {})
   }, [])
 
   const branch = branches.find((b) => b.id === branchId)
   const actionable = branch?.steps.filter((s) => s.action).length ?? 0
   const finished = branch && Object.keys(done).length >= actionable
 
-  const run = async (i: number, action: string) => {
+  const run = async (i: number, action: string, files?: FileList | null) => {
     setBusy(i)
     try {
       let text = ''
@@ -148,6 +190,9 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
           const r = await api.returnFunds(persona.id, incoming.id)
           text = `Заморожено ${rub(r.frozen_amount)}, заявка ${r.claim_id}. Банк вернёт деньги отправителю.`
         }
+      } else if (action === 'evidence' && files?.length) {
+        const r = await api.evidence(persona.id, await Promise.all([...files].map(readAsDataUrl)))
+        text = `Прикреплено скриншотов: ${r.count}, номер ${r.evidence_id}. Они попадут в обращение в банк и заявление в полицию.`
       } else if (action === 'pause_outgoing') {
         await api.pauseOutgoing(persona.id)
         text = 'Исходящие переводы на паузе 24 часа'
@@ -158,6 +203,8 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
       }
       setDone((d) => ({ ...d, [i]: text }))
       onChanged()
+    } catch (e) {
+      setErrors((x) => ({ ...x, [i]: (e as Error).message }))
     } finally {
       setBusy(null)
     }
@@ -196,11 +243,34 @@ export function SosModal({ persona, txs, initialBranch, onClose, onChanged, onCo
               </span>
               <div className="flex-1">
                 <p className="text-[15px] leading-snug">{s.text}</p>
-                {s.action && !done[i] && (
+                {s.action === 'evidence' && !done[i] && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <label className={`btn-primary cursor-pointer px-4 py-2 text-sm ${busy !== null ? 'pointer-events-none opacity-50' : ''}`}>
+                      <Icon name="image" size={16} /> {busy === i ? 'Прикрепляем…' : 'Прикрепить скриншоты'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = e.target.files
+                          if (files?.length) run(i, 'evidence', files)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                    <button className="btn-ghost px-4 py-2 text-sm" disabled={busy !== null} onClick={() => run(i, 'evidence')}>
+                      Сохранить чат из демо
+                    </button>
+                  </div>
+                )}
+                {s.action && s.action !== 'evidence' && !done[i] && (
                   <button className="btn-primary mt-3 px-4 py-2 text-sm" disabled={busy !== null} onClick={() => run(i, s.action!)}>
                     {busy === i ? 'Выполняем…' : ACTION_LABEL[s.action] ?? 'Выполнить'}
                   </button>
                 )}
+                {s.legal && legal[s.legal] && <LegalNote items={[legal[s.legal]]} />}
+                {errors[i] && !done[i] && <p className="mt-2 text-sm font-medium text-risk-high">{errors[i]}</p>}
                 {done[i] && <p className="animate-fade mt-2 text-sm font-medium text-[#137a55]">{done[i]}</p>}
                 {drafts[i] && (
                   <details className="animate-fade mt-2 rounded-2xl bg-page p-3" open>
@@ -253,25 +323,21 @@ export function ShieldModal({ initialText = '', onClose, onOpenSos }: {
   }
 
   // Скриншот переписки → распознаём текст на сервере (EasyOCR) → та же проверка
-  const checkImage = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const dataUrl = String(reader.result)
-      setPreview(dataUrl)
-      setResult(null)
-      setError('')
-      setBusy(true)
-      try {
-        const r = await api.shieldImage(dataUrl)
-        setResult(r)
-        if (r.recognized_text) setText(r.recognized_text)
-      } catch (e) {
-        setError((e as Error).message)
-      } finally {
-        setBusy(false)
-      }
+  const checkImage = async (file: File) => {
+    const dataUrl = await readAsDataUrl(file)
+    setPreview(dataUrl)
+    setResult(null)
+    setError('')
+    setBusy(true)
+    try {
+      const r = await api.shieldImage(dataUrl)
+      setResult(r)
+      if (r.recognized_text) setText(r.recognized_text)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
     }
-    reader.readAsDataURL(file)
   }
 
   return (

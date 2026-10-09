@@ -2,6 +2,7 @@ import type {
   AssistantReply,
   DemoState,
   Goal,
+  LegalItem,
   Lesson,
   LiveRisk,
   OperationResponse,
@@ -54,11 +55,14 @@ export const api = {
     post<TransferResponse>('/api/payments/transfer', { persona_id: personaId, to, amount, confirmed }),
 
   sosBranches: () => request<SosBranch[]>('/api/sos/branches'),
+  legal: () => request<LegalItem[]>('/api/sos/legal'),
   returnFunds: (personaId: string, operationId: string) =>
     post<{ claim_id: string; frozen_amount: number; status: string }>('/api/sos/return-funds', {
       persona_id: personaId,
       operation_id: operationId,
     }),
+  evidence: (personaId: string, imagesBase64: string[]) =>
+    post<{ evidence_id: string; count: number }>('/api/sos/evidence', { persona_id: personaId, images_base64: imagesBase64 }),
   pauseOutgoing: (personaId: string) => post('/api/sos/pause-outgoing', { persona_id: personaId }),
   sosAction: (personaId: string, action: string, branch?: string) =>
     post<{ result: string; draft?: string | null }>('/api/sos/action', { persona_id: personaId, action, branch }),

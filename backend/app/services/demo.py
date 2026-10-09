@@ -19,6 +19,7 @@ class DemoEngine:
     def __init__(self) -> None:
         self._runs: dict[str, _Run] = {}
         self._subscribers: dict[str, set[asyncio.Queue]] = {}
+        self._loops: dict[asyncio.Queue, asyncio.AbstractEventLoop] = {}
 
     def _steps(self, scenario_id: str) -> list[DemoStep]:
         return [DemoStep(**s) for s in content.scenario(scenario_id)["steps"]]
@@ -69,16 +70,22 @@ class DemoEngine:
     # ---- SSE ----
     def subscribe(self, scenario_id: str) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue()
+        # publish() вызывают синхронные эндпоинты из пула потоков — запоминаем цикл событий подписчика
+        self._loops[q] = asyncio.get_running_loop()
         self._subscribers.setdefault(scenario_id, set()).add(q)
         return q
 
     def unsubscribe(self, scenario_id: str, q: asyncio.Queue) -> None:
         self._subscribers.get(scenario_id, set()).discard(q)
+        self._loops.pop(q, None)
 
     def publish(self, scenario_id: str) -> None:
         payload = self.state(scenario_id).model_dump_json()
-        for q in self._subscribers.get(scenario_id, set()):
-            q.put_nowait(payload)
+        for q in list(self._subscribers.get(scenario_id, set())):
+            loop = self._loops.get(q)
+            if loop and not loop.is_closed():
+                # asyncio.Queue не потокобезопасна: кладём через цикл событий, иначе подписчик не проснётся
+                loop.call_soon_threadsafe(q.put_nowait, payload)
 
     def publish_for_persona(self, persona_id: str) -> None:
         for scenario_id in list(self._runs):

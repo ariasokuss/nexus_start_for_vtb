@@ -124,6 +124,22 @@ export default function Cabinet() {
     scenarioOn.current = scenario !== null
   }, [scenario])
 
+  // Пока идёт сценарий, «Что видит банк» получает риск с сервера потоком (SSE) — в том числе после
+  // действий в другой вкладке. Пропал поток — панель всё равно обновится после каждого действия.
+  const streaming = scenario !== null
+  useEffect(() => {
+    if (!streaming || typeof EventSource === 'undefined') return
+    const es = new EventSource(`/api/demo/${personaId}/stream`)
+    es.onmessage = (e) => {
+      try {
+        setLive((JSON.parse(e.data) as DemoState).risk)
+      } catch {
+        // повреждённое событие пропускаем — следующее придёт целиком
+      }
+    }
+    return () => es.close()
+  }, [streaming, personaId])
+
   // Окно сценария ждёт, пока пользователь закроет текущее окно или сторис
   useEffect(() => {
     if (!pending || modal || story !== null || popup) return
@@ -442,7 +458,7 @@ export default function Cabinet() {
     { icon: 'plus', title: 'Пополнить', sub: 'От родителей или другого человека', onClick: () => setModal({ kind: 'topup' }) },
     { icon: 'send', title: 'Перевести', sub: 'Своим или по номеру телефона', onClick: () => setModal({ kind: 'transfer' }) },
     { icon: 'bag', title: 'Оплатить', sub: 'Одежда, еда, кино, подписки', onClick: () => setModal({ kind: 'pay' }) },
-    { icon: 'lifebuoy', title: 'Безопасный выход', sub: 'Если что-то пошло не так', onClick: () => setModal({ kind: 'sos' }), accent: true },
+    { icon: 'lifebuoy', title: 'Я влип — что делать?', sub: 'Безопасный выход: план по шагам', onClick: () => setModal({ kind: 'sos' }), accent: true },
   ]
   const cardLabel =
     persona.segment === 'kids' ? '«Детский банк» · карта к счёту мамы' : persona.segment === 'pushkin' ? '«Пушкинская карта»' : 'Карта «Старт» · •• 4821'
@@ -491,7 +507,7 @@ export default function Cabinet() {
           </section>
         )}
 
-        <div className="mt-7 grid gap-6 lg:grid-cols-[380px_1fr]">
+        <div className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
           {/* ---------- Левая колонка ---------- */}
           <div className="space-y-5">
             <div className="relative overflow-hidden rounded-[28px] p-6 text-white" style={{ background: 'linear-gradient(135deg, #5b3df5 0%, #8b3df5 55%, #ff5fa2 120%)', boxShadow: 'var(--shadow-card)' }}>
@@ -541,7 +557,7 @@ export default function Cabinet() {
                 onClick={() =>
                   setPopup(
                     persona.segment === 'kids'
-                      ? { type: 'bridge', title: 'Переход в «Старт»', text: 'Тебе исполнилось 14? Перейди в раздел для 14–22 лет — цели, копилка и опыт сохранятся.' }
+                      ? { type: 'bridge', title: 'Переход в «Старт»', text: 'Вам исполнилось 14? Перейдите в раздел для 14–22 лет — цели, копилка и опыт сохранятся.' }
                       : { type: 'pushkin', title: '«Старт» для держателей «Пушкинской карты»', text: 'Своя карта, копилка, «Молодёжь Плюс» и защита от мошенников — в одном разделе.' },
                   )
                 }

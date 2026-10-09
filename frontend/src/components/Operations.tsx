@@ -64,8 +64,8 @@ export default function Operations({ txs }: { txs: Transaction[] }) {
   return (
     <div className="card p-6 sm:p-7">
       <div className="flex items-center justify-between">
-        <h3 className="text-[22px] font-bold">История операций</h3>
-        <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-[15px] font-semibold text-brand hover:underline">
+        <h3 className="text-[20px] font-bold sm:text-[22px]">История операций</h3>
+        <button onClick={() => setOpen(true)} className="flex shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-semibold text-brand hover:underline">
           Все операции <Icon name="chevron" size={16} />
         </button>
       </div>

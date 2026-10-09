@@ -50,6 +50,12 @@ export default function QuestModal({ quest, onClose, onFinish }: {
   }, [quest.id])
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
   }, [lines, typing])
 
@@ -60,7 +66,7 @@ export default function QuestModal({ quest, onClose, onFinish }: {
   }
 
   return (
-    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/70 sm:p-6" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label={quest.title} data-viewer="quest" className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-black/70 sm:p-6" onClick={onClose}>
       <div
         className="animate-rise flex h-full w-full flex-col overflow-hidden bg-[#eef1f5] sm:h-[min(820px,94vh)] sm:max-w-[460px] sm:rounded-[32px]"
         style={{ boxShadow: 'var(--shadow-pop)' }}

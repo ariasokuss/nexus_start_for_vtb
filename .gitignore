@@ -33,3 +33,4 @@ Thumbs.db
 
 # служебные файлы CatBoost
 catboost_info/
+*.tsbuildinfo

@@ -70,9 +70,9 @@
 | GET | `/api/sos/branches` | Ветки A–D из `content/sos/branches.json` |
 | GET | `/api/sos/legal` | Юр. формулировки из `content/legal.json` |
 | POST | `/api/sos/return-funds` | `{persona_id, operation_id}` → `{claim_id, frozen_amount, status: "frozen" \| "not_found"}` |
-| POST | `/api/sos/evidence` | `{persona_id, images_base64[]}` → `{evidence_id, count}` |
+| POST | `/api/sos/evidence` | `{persona_id, images_base64[]}` → `{evidence_id, count}`. 1–10 картинок, вместе до 7 МБ, иначе 422. Картинки не хранятся — только номер пакета и число; пакет попадает в черновики обращений этого клиента |
 | POST | `/api/sos/pause-outgoing` | `{persona_id}` → `{paused_until}` |
-| POST | `/api/sos/report` | `{persona_id, branch}` → `{draft_text, attachments[]}` |
+| POST | `/api/sos/report` | `{persona_id, branch}` → `{draft_text, attachments[]}` — `attachments` — номера пакетов доказательств этого клиента |
 
 ## Щит
 

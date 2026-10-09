@@ -1,7 +1,9 @@
+import base64
+import binascii
 import uuid
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app import content
 from app.schemas import (
@@ -18,8 +20,9 @@ from app.services.demo import engine
 
 router = APIRouter(prefix="/api/sos", tags=["sos"])
 
-# В демо доказательства лежат в памяти. В реальной версии — шифрование и передача в банк только по согласию.
-_evidence: dict[str, list[str]] = {}
+MAX_EVIDENCE_IMAGES = 10
+# Вместе ≤ 7 МБ: в base64 это ~9,3 МБ — проходит лимит запроса nginx на стенде (10 МБ, frontend/nginx.conf)
+MAX_EVIDENCE_BYTES = 7 * 1024 * 1024
 
 
 @router.get("/branches")
@@ -43,9 +46,33 @@ def return_funds(req: ReturnFundsRequest):
 
 @router.post("/evidence")
 def evidence(req: EvidenceRequest):
+    """Прикрепить скриншоты переписки к обращению.
+
+    В демо картинки только проверяем и считаем, но не храним (PLAN.md, раздел 15). В реальной версии они
+    шифруются и уходят в банк вместе с обращением, только по согласию клиента.
+    """
+    if not 1 <= len(req.images_base64) <= MAX_EVIDENCE_IMAGES:
+        raise HTTPException(422, f"Прикрепите от 1 до {MAX_EVIDENCE_IMAGES} скриншотов")
+    total = 0
+    for image in req.images_base64:
+        try:
+            total += len(base64.b64decode(image.split(",", 1)[-1], validate=True))
+        except (binascii.Error, ValueError):
+            raise HTTPException(422, "Файл не похож на картинку") from None
+    if total > MAX_EVIDENCE_BYTES:
+        raise HTTPException(422, "Скриншоты вместе больше 7 МБ — прикрепите меньше")
+    account = bank.get(req.persona_id)
     evidence_id = f"EV-{uuid.uuid4().hex[:6].upper()}"
-    _evidence[evidence_id] = req.images_base64
+    account.evidence[evidence_id] = len(req.images_base64)
     return {"evidence_id": evidence_id, "count": len(req.images_base64)}
+
+
+def _attachments(persona_id: str) -> str:
+    """Строка о вложениях для черновиков: какие пакеты скриншотов уже прикреплены."""
+    packs = bank.get(persona_id).evidence
+    if not packs:
+        return ""
+    return f"\n\nПриложение: скриншоты переписки — {sum(packs.values())} шт. ({', '.join(packs)})."
 
 
 @router.post("/pause-outgoing")
@@ -92,7 +119,7 @@ def draft(persona_id: str, kind: str, branch: str | None) -> str | None:
         incoming=f"{_rub(inc.amount)} от «{inc.counterparty}» {inc.ts:%d.%m в %H:%M}" if inc else "—",
         outgoing=f"{_rub(out.amount)} на «{out.counterparty}» {out.ts:%d.%m в %H:%M}" if out else "—",
         timeline=timeline or "—",
-    )
+    ) + _attachments(persona_id)
 
 
 @router.post("/action")
@@ -115,5 +142,5 @@ def report(req: ReportRequest):
     draft = (
         f"Я, {account.persona.name}, сообщаю, что меня пытались использовать для перевода чужих денег.\n"
         "Хронология операций:\n" + "\n".join(lines) + "\nПереписку прилагаю."
-    )
-    return ReportResponse(draft_text=draft, attachments=list(_evidence))
+    ) + _attachments(req.persona_id)
+    return ReportResponse(draft_text=draft, attachments=list(account.evidence))

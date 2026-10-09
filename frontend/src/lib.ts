@@ -44,3 +44,12 @@ export const AVATAR_GRADIENT: Record<string, string> = {
   sonya: 'linear-gradient(135deg, #ff9f43, #ff5fa2)',
   lev: 'linear-gradient(135deg, #16171d, #5b3df5)',
 }
+
+// Файл → data URL (для скриншотов: Щит и доказательства)
+export const readAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
