@@ -22,6 +22,7 @@ ml/data/*
 !ml/data/.gitkeep
 # ручной тест Щита (150 сообщений от команды) коммитим
 !ml/data/messages_test_manual_*.csv
+!ml/data/messages_test_extra_*.csv
 ml/models/*
 !ml/models/.gitkeep
 
