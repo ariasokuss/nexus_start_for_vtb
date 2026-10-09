@@ -1,4 +1,4 @@
-"""Черновое видео демо (до 3 минут): Артём → Соня → Лев → «Что видит банк». Подписи — оверлеем поверх страницы.
+"""Черновое видео демо (до 3 минут): главная с комиксом → Артём → Соня → Лев → «Что видит банк». Подписи — оверлеем поверх страницы.
 
     pip install playwright && playwright install chromium ffmpeg
     docker compose up                       # сайт на http://localhost:5173
@@ -97,7 +97,10 @@ def play(page, pid, captions, max_s, skip_quest=True):
             break
         idle += 1
         if idle >= 3 and page.get_by_text("Пропустить шаг").count():
-            page.get_by_text("Пропустить шаг").click()
+            try:  # кнопку может перекрыть появившееся окно — тогда просто ждём дальше
+                page.get_by_text("Пропустить шаг").click(timeout=2000)
+            except Exception:
+                pass
             idle = 0
     page.wait_for_timeout(1500)
     page.keyboard.press("Escape")
@@ -108,11 +111,33 @@ with sync_playwright() as p:
     ctx = b.new_context(viewport={"width": W, "height": H}, record_video_dir=str(OUT), record_video_size={"width": W, "height": H})
     page = ctx.new_page()
 
-    # Титр
+    # Главная: первый экран, затем прокрутка — развороты комикса перелистываются справа налево
     page.goto(f"{BASE}/")
-    page.wait_for_timeout(500)
-    cap(page, "«Старт» — раздел банка для 14–22 лет. Банк ловит вербовку в дропы в момент перевода и помогает выйти из ситуации.")
-    page.wait_for_timeout(5000)
+    page.wait_for_timeout(800)
+    cap(page, "«Старт» — раздел ВТБ Онлайн для 14–22 лет: буфер между детским и взрослым банком.")
+    page.wait_for_timeout(4000)
+    cap(page, "Прокручиваем вниз — история разворачивается комиксом.")
+    # плавно прокручиваем до конца комикса (экраны «comic-*»), примерно по 4 секунды на разворот
+    page.evaluate(
+        """async () => {
+          const deck = document.getElementById('deck')
+          const ids = deck.dataset.slides.split(',')
+          const last = ids.filter((x) => x.startsWith('comic-')).length
+          const total = deck.offsetHeight - innerHeight
+          const end = deck.offsetTop + (total * last) / (ids.length - 1)
+          const start = scrollY, ms = last * 4200, t0 = performance.now()
+          await new Promise((done) => {
+            const step = (t) => {
+              const k = Math.min(1, (t - t0) / ms)
+              scrollTo(0, start + (end - start) * k)
+              k < 1 ? requestAnimationFrame(step) : done()
+            }
+            requestAnimationFrame(step)
+          })
+        }"""
+    )
+    cap(page, "")
+    page.wait_for_timeout(1200)
 
     play(page, "artem", {
         "start": "Артём, 16 лет. В мессенджере ему предлагают «подработку без опыта».",
@@ -122,18 +147,19 @@ with sync_playwright() as p:
         "Вас торопят": "Вербовщик давит. Банк объясняет приём и ведёт к «Безопасному выходу».",
         "ничего не делал": "«Безопасный выход»: план по шагам, большинство — одной кнопкой. Под шагами — основание со ссылками на закон.",
         "Сценарий пройден": "Итог без осуждения: деньги заморожены, обращение со скриншотами ушло в банк.",
-    }, max_s=75)
+    }, max_s=80)
 
     play(page, "sonya", {
         "start": "Соня, 13 лет, «Детский банк». В 14 лет детский продукт обычно просто заканчивается.",
         "Через неделю": "За неделю до дня рождения банк объясняет, что изменится.",
         "С днём рождения": "Переход в одно касание: мама подтверждает в своём приложении, копилка и опыт переносятся.",
         "важное про вашу карту": "Первая история в «Старте» — почему нельзя отдавать свою карту.",
-    }, max_s=40)
+    }, max_s=30)
 
     play(page, "lev", {
         "start": "Лев, 15 лет. В банке у него только «Пушкинская карта».",
         "Пушкинской карте": "Витрина «Старта»: своя карта за минуту.",
+        "выкуп": "Пишут: «куплю баланс Пушкинской». Банк предупреждает: законно её не обналичить, за этим кража или фиктивные концерты.",
         "первую цель": "Первое пополнение — и сразу первая цель в копилке.",
         "Сценарий пройден": "Держатель «Пушкинской карты» стал клиентом банка через «Старт».",
     }, max_s=45)
@@ -145,9 +171,9 @@ with sync_playwright() as p:
     page.wait_for_timeout(800)
     cap(page, "«Что видит банк»: профиль клиента — обычные суммы, свои отправители, скорость транзита — и сигналы риска.")
     page.get_by_text("Подробнее").first.click()
-    page.wait_for_timeout(9000)
-    cap(page, "Решения принимают модели, LLM только объясняет. Данные синтетические, модели переобучаются на данных банка.")
     page.wait_for_timeout(6000)
+    cap(page, "Решения принимают модели, LLM только объясняет. Данные синтетические, модели переобучаются на данных банка.")
+    page.wait_for_timeout(4500)
 
     ctx.close()
     b.close()
