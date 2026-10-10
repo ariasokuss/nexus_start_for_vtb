@@ -115,6 +115,9 @@
 | POST | `/api/assistant/chat` | `{persona_id, message, history}` → `{reply, suggestions, action, source}`; правила, или LLM при `LLM_PROVIDER=ollama` |
 
 `Transaction` дополнен полями `category` и `flagged`; `LiveRisk` — полем `profile`.
+
+| Метод | Путь | Что делает |
+|---|---|---|
 | GET | `/api/lessons` | Все уроки как сторис (`short` — подпись плитки, `cta` — кнопка в конце), по полю `order` |
 | GET | `/api/progress/{id}` | `{xp, level, done, gained}` |
 | POST | `/api/progress` | `{persona_id, lesson_id \| quest_id \| action}` — XP начисляется один раз; `action: "safe_exit"` даёт +50 |
@@ -126,6 +129,8 @@
 `history` (банк заметил транзит), `lesson` (`title`, `text` — предложение посмотреть сторис), `done` (итог, `text` — что сделал персонаж).
 В `bank_events` можно указать `channel` и `category` для трат (`"channel": "card", "category": "food"`).
 
+| Метод | Путь | Что делает |
+|---|---|---|
 | Метод | Путь | Что делает |
 |---|---|---|
 | POST | `/api/shield/check` | `{image_base64}` — скриншот: EasyOCR → проверка; в ответе `recognized_text`. Без EasyOCR — 503 |

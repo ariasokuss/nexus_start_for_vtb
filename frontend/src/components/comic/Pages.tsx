@@ -82,7 +82,7 @@ export interface ComicPageDef {
 export const PAGES: ComicPageDef[] = [
   {
     id: 'cover',
-    label: 'Обложка: «Старт». Что происходит, когда тебе 14',
+    label: 'Обложка: «Старт». Что происходит, когда вам 14',
     render: () => (
       <div className="comic-cover absolute inset-0">
         <Art label="Подросток с телефоном на фоне лучей">
