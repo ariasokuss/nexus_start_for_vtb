@@ -8,7 +8,7 @@
 - **«Безопасный выход»:** черновики обращений в банк и полицию по веткам A–D (тексты — `content/sos/report_templates.json`).
 - **Копилка:** работает (`/api/goals`), у Кати шаг «10% зарплаты в копилку».
 - **LLM:** Ollama (on-prem) и **GigaChat** (`LLM_PROVIDER=gigachat`, ключ в `GIGACHAT_CREDENTIALS`); без ключа — шаблоны.
-- **Docker:** `docker compose up` и тесты в контейнере проверены (36 тестов); продакшен-стенд — `docker-compose.prod.yml`, инструкция — [`deploy.md`](deploy.md).
+- **Docker:** `docker compose up` и тесты в контейнере проверены (37 тестов); продакшен-стенд — `docker-compose.prod.yml`, инструкция — [`deploy.md`](deploy.md).
 - **Бизнес и питч:** `docs/business/` (финмодель, бизнес-модель), `docs/pitch/` (каркас презентации, текст питча, защита данных, вопросы по экономике).
 
 ---

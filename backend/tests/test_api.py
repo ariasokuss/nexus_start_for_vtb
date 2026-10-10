@@ -215,3 +215,8 @@ def test_pushkin_buyout_offer_opens_lesson():
     lesson = client.post("/api/events", json={"persona_id": "lev", "type": "pushkin_offer", "payload": {}}).json()["lesson"]
     assert lesson["id"] == "pushkin_scam" and lesson["quiz"]["answer"] == 1
     assert client.post("/api/demo/lev/reset").json()["steps_count"] == 4
+
+
+def test_shield_catches_short_slang_recruitment():
+    r = client.post("/api/shield/check", json={"text": "Подработка, придёт 30к, перешли 27 на карту, 3к твои"})
+    assert r.json()["scheme"] == "drop_recruitment" and r.json()["risk"] == "high"
