@@ -14,7 +14,7 @@
 curl -fsSL https://get.docker.com | sh
 
 # 2. Код — ровно тот тег, который сдаём (менять стенд после дедлайна нельзя, п. 5.9.2 Правил)
-git clone https://github.com/keshaptisa/vtb.git && cd vtb
+git clone https://github.com/ariasokuss/nexus_start_for_vtb.git vtb && cd vtb
 git checkout sprint-1          # или нужная ветка, пока тега нет
 
 # 3. Настройки
