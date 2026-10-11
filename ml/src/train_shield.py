@@ -7,7 +7,9 @@
    (словарь, idf, веса) — бэкенду не нужен scikit-learn.
 3. Проверка, что инференс бэкенда совпадает со sklearn.
 
-Ручной тест (data/messages_test_manual_*.csv) здесь НЕ используется — только в eval.py.
+Ручные сообщения команды (data/messages_test_manual_*.csv, 150 шт.) добавляются в финальное обучение с весом
+MANUAL_WEIGHT — это живая речь, которой нет в шаблонах. Честная оценка на них — по автору: учим на двух авторах,
+проверяем на третьем (eval_manual.py).
 """
 import json
 import sys
@@ -29,6 +31,7 @@ from app.ml.text import analyze  # noqa: E402
 DATA = ROOT / "data"
 MODEL_PATH = BACKEND / "app" / "ml" / "models" / "shield.json"
 SEED = 42
+MANUAL_WEIGHT = 3  # подобрано по проверке «по автору»: 6 даёт больше ложных срабатываний
 
 
 def make_model():
@@ -56,6 +59,11 @@ def export(vec, clf, path: Path) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+def load_manual() -> pd.DataFrame:
+    files = sorted(DATA.glob("messages_test_manual_*.csv"))
+    return pd.concat([pd.read_csv(f) for f in files], ignore_index=True) if files else pd.DataFrame(columns=["text", "label", "author"])
+
+
 def main():
     df = pd.read_csv(DATA / "messages.csv")
     split = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=SEED)
@@ -65,7 +73,10 @@ def main():
     print("Отложенные шаблоны (holdout по template_id):")
     print(classification_report(df.label.iloc[te], pred, digits=3, zero_division=0))
 
-    vec, clf = fit(df.text, df.label)
+    manual = load_manual()
+    train = pd.concat([df[["text", "label"]]] + [manual[["text", "label"]]] * MANUAL_WEIGHT)
+    vec, clf = fit(train.text, train.label)
+    print(f"Финальная модель: {len(df)} шаблонных + {len(manual)} ручных ×{MANUAL_WEIGHT}")
     export(vec, clf, MODEL_PATH)
 
     # инференс бэкенда должен совпадать со sklearn
