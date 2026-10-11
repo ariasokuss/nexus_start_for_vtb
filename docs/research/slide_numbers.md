@@ -37,6 +37,9 @@
   [investfuture.ru](https://investfuture.ru/articles/ts-b-poluchil-23-8-tys-zhalob-na-otkaz-v-operatsiyakh-za-yanvar-iyul-37944824)).
   Первоисточник — сам документ ЦБ на cbr.ru.
 
+- **> 35 млн ₽** похитили в Омской области через чужие «Пушкинские карты» ([mel.fm](https://mel.fm/novosti/6039584-v-omskoy-oblasti-moshenniki-ispolzuya-chuzhiye-pushkinskiye-karty-pokhitili-boleye-35-mln-rubley));
+  схема «выкупа»: у студентов покупают доступ к картам и продают по ним билеты сами себе ([bfm.ru](https://www.bfm.ru/news/520764)).
+
 > Сверено 12.10.2026 по публикациям СМИ со ссылкой на ВТБ и ЦБ; пресс-релизов-первоисточников в открытом доступе не нашли.
 
 ---
